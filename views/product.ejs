@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= product.title %> | Vendex</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        background: 'var(--background)',
+                        foreground: 'var(--foreground)',
+                        card: 'var(--card)',
+                        'card-foreground': 'var(--card-foreground)',
+                        primary: 'var(--primary)',
+                        'primary-foreground': 'var(--primary-foreground)',
+                        'primary-container': 'var(--primary-container)',
+                        'on-primary-container': 'var(--on-primary-container)',
+                        'secondary-container': 'var(--secondary-container)',
+                        tertiary: 'var(--tertiary)',
+                        'tertiary-foreground': 'var(--tertiary-foreground)',
+                        destructive: 'var(--destructive)',
+                        'muted-foreground': 'var(--muted-foreground)',
+                        border: 'var(--border)'
+                    },
+                    borderRadius: {
+                        xl: '0.75rem',
+                        '2xl': '1rem'
+                    },
+                    keyframes: {
+                        "accordion-down": {
+                            from: { height: "0" },
+                            to: { height: "var(--radix-accordion-content-height)" },
+                        },
+                        "accordion-up": {
+                            from: { height: "var(--radix-accordion-content-height)" },
+                            to: { height: "0" },
+                        },
+                    },
+                    animation: {
+                        "accordion-down": "accordion-down 0.2s ease-out",
+                        "accordion-up": "accordion-up 0.2s ease-out",
+                    },
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --background: #FEF7FF;
+            --foreground: #1D1B20;
+            --card: #FFFFFF;
+            --card-foreground: #1D1B20;
+            --primary: #6750A4;
+            --primary-foreground: #FFFFFF;
+            --primary-container: #EADDFF;
+            --on-primary-container: #21005D;
+            --secondary-container: #E8DEF8;
+            --tertiary: #7D5260;
+            --tertiary-foreground: #FFFFFF;
+            --destructive: #BA1A1A;
+            --muted-foreground: #49454F;
+            --border: #CAC4D0;
+        }
+
+        body.dark {
+            --background: #1D1B20;
+            --foreground: #E6E1E5;
+            --card: #1D1B20;
+            --card-foreground: #E6E1E5;
+            --primary: #D0BCFF;
+            --primary-foreground: #371E73;
+            --primary-container: #4F378B;
+            --on-primary-container: #EADDFF;
+            --secondary-container: #4A4458;
+            --tertiary: #EFB8C8;
+            --tertiary-foreground: #492532;
+            --destructive: #FFB4AB;
+            --muted-foreground: #CAC4D0;
+            --border: #49454F;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--foreground);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Custom styles for native details/summary animation */
+        details > summary {
+            list-style: none;
+        }
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
+        details[open] summary ~ * {
+            animation: sweep .3s ease-in-out;
+        }
+        @keyframes sweep {
+            0%    {opacity: 0; transform: translateY(-10px)}
+            100%  {opacity: 1; transform: translateY(0)}
+        }
+        .chevron {
+            transition: transform 0.2s ease-in-out;
+        }
+        details[open] .chevron {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body class="dark min-h-screen flex flex-col">
+
+    <header class="sticky top-0 z-40 bg-card shadow-sm border-b border-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <a href="/" class="flex items-center gap-3 no-underline">
+                    <h1 class="text-xl font-bold text-primary">Vendex</h1>
+                </a>
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleTheme()" class="p-2 hover:bg-secondary-container rounded-full transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+                    </button>
+                    <a href="/" class="relative p-2 hover:bg-secondary-container rounded-full transition-colors text-foreground">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        
+        <nav class="flex items-center text-sm text-muted-foreground mb-8">
+            <a href="/" class="hover:text-primary transition-colors">Home</a>
+            <svg class="mx-2 w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            <span class="hover:text-primary transition-colors"><%= product.brand %></span>
+            <svg class="mx-2 w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            <span class="text-foreground font-medium truncate max-w-[200px]"><%= product.title %></span>
+        </nav>
+
+        <div class="grid md:grid-cols-2 gap-12 lg:gap-16 items-start">
+            
+            <div class="space-y-4">
+                <div class="relative aspect-square bg-secondary-container rounded-2xl overflow-hidden border border-border shadow-sm">
+                    <img 
+                        src="<%= product.image %>" 
+                        alt="<%= product.title %>"
+                        class="w-full h-full object-cover"
+                    />
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-6">
+                <div>
+                    <h1 class="text-3xl sm:text-4xl font-bold text-foreground mb-2 leading-tight"><%= product.title %></h1>
+                    
+                    <div class="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                        <div class="flex items-center gap-1 text-yellow-500">
+                            <span>★</span>
+                            <span class="font-medium"><%= product.rating || '4.5' %></span>
+                            <span class="text-muted-foreground ml-1">(<%= product.reviews || '10' %> Reviews)</span>
+                        </div>
+                        <div class="w-px h-4 bg-border"></div>
+                        <span>SKU: <%= product.sku %></span>
+                    </div>
+
+                    <div class="text-3xl font-bold text-primary mb-6">
+                        $<%= product.price.toFixed(2) %>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-2">
+                    <div class="flex items-center gap-3 p-3 rounded-lg border border-border bg-card">
+                        <svg class="w-5 h-5 text-primary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        <div class="text-xs">
+                            <div class="font-medium text-foreground">Secure Checkout</div>
+                            <div class="text-muted-foreground">SSL Encrypted</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 rounded-lg border border-border bg-card">
+                        <svg class="w-5 h-5 text-primary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2" ry="2"/><polyline points="16 8 20 8 23 11 23 16 16 16 16 14"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                        <div class="text-xs">
+                            <div class="font-medium text-foreground">Fast Shipping</div>
+                            <div class="text-muted-foreground"><%= product.shipping_time || '2-4 Days' %></div>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="addToCartFromDetail()" class="w-full bg-primary text-primary-foreground py-4 px-6 rounded-full font-bold text-lg hover:shadow-xl hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                    Add to Cart
+                </button>
+
+                <div class="prose prose-sm text-muted-foreground leading-relaxed">
+                    <p><%= product.description %></p>
+                </div>
+
+                <div class="border-t border-border my-2"></div>
+
+                <div class="space-y-1">
+                    <details class="group py-2">
+                        <summary class="flex cursor-pointer list-none items-center justify-between font-medium text-foreground">
+                            <span>Key Features</span>
+                            <span class="chevron transition group-open:rotate-180">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                            </span>
+                        </summary>
+                        <div class="text-muted-foreground pt-4 text-sm pb-2">
+                            <% if(product.features) { %>
+                                <ul class="list-disc pl-5 space-y-1">
+                                    <% product.features.forEach(function(feature) { %>
+                                        <li><%= feature %></li>
+                                    <% }); %>
+                                </ul>
+                            <% } else { %>
+                                <p>No specific features listed for this item.</p>
+                            <% } %>
+                        </div>
+                    </details>
+                    
+                    <div class="border-b border-border"></div>
+
+                    <details class="group py-2">
+                        <summary class="flex cursor-pointer list-none items-center justify-between font-medium text-foreground">
+                            <span>Shipping & Returns</span>
+                            <span class="chevron transition group-open:rotate-180">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                            </span>
+                        </summary>
+                        <div class="text-muted-foreground pt-4 text-sm pb-2">
+                            <p>We offer fast shipping worldwide. Returns are accepted within 30 days of purchase for a full refund if the item is in original condition.</p>
+                        </div>
+                    </details>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org/",
+      "@type": "Product",
+      "name": "<%= product.title %>",
+      "image": [ "<%= product.image %>" ],
+      "description": "<%= product.description %>",
+      "sku": "<%= product.sku %>",
+      "brand": { "@type": "Brand", "name": "<%= product.brand %>" },
+      "offers": {
+        "@type": "Offer",
+        "url": "http://localhost:3000/product/<%= product.id %>",
+        "priceCurrency": "USD",
+        "price": "<%= product.price %>",
+        "availability": "https://schema.org/<%= product.availability === 'in stock' ? 'InStock' : 'OutOfStock' %>"
+      }
+    }
+    </script>
+
+    <script>
+        // Theme Logic
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('theme') === 'light') {
+            document.body.classList.remove('dark');
+        }
+
+        // --- NEW: CART LOGIC FOR DETAIL PAGE ---
+        
+        // 1. Get the current product data from EJS
+        const currentProduct = <%- JSON.stringify(product) %>;
+
+        function addToCartFromDetail() {
+            // 1. Get existing cart from Storage
+            let cart = JSON.parse(localStorage.getItem('vendex_cart')) || [];
+
+            // 2. Check if item exists
+            const existing = cart.find(item => item.id === currentProduct.id);
+            if (existing) {
+                existing.quantity++;
+            } else {
+                cart.push({ ...currentProduct, quantity: 1 });
+            }
+
+            // 3. Save back to Storage
+            localStorage.setItem('vendex_cart', JSON.stringify(cart));
+
+            // 4. Visual Feedback
+            alert('Added to cart! Go back to home to view.');
+            // Optional: You could redirect them home immediately:
+            // window.location.href = '/'; 
+        }
+    </script>
+</body>
+</html>
