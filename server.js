@@ -68,7 +68,11 @@ const startServer = async () => {
   try {
     // 1. Attempt to connect to MongoDB first
     console.log('⏳ Attempting to connect to MongoDB...');
-    
+    // Add this right before await mongoose.connect(...)
+    console.log('URI Type:', typeof process.env.MONGO_URI);
+    console.log('URI Value (first 10 chars):', process.env.MONGO_URI ? process.env.MONGO_URI.substring(0, 10) : 'UNDEFINED');
+
+    await mongoose.connect(process.env.MONGO_URI, { ... });
     await mongoose.connect(process.env.MONGO_URI, {
       serverSelectionTimeoutMS: 5000 // Fail after 5s if no connection
     });
