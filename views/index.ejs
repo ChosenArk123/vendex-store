@@ -32,7 +32,7 @@
                     },
                     borderRadius: {
                         xl: '0.75rem',
-                        '2xl': '1rem'
+                        '2xl': '1.5rem'
                     }
                 }
             }
@@ -95,13 +95,12 @@
     </style>
 </head>
 <body class="dark min-h-screen flex flex-col">
-
     <% 
-    // 1. Get all categories from the products list
-    const allCategories = products.map(p => p.google_category.split('>').pop().trim());
-    
-    // 2. Filter for unique ones only
-    const uniqueCategories = [...new Set(allCategories)].sort(); 
+        // Get all categories from the products list
+        const allCategories = products.map(p => p.google_category.split('>').pop().trim());
+        
+        // Filter for unique ones only (so we don't have duplicates)
+        const uniqueCategories = [...new Set(allCategories)].sort(); 
     %>
 
     <header class="sticky top-0 z-40 bg-card shadow-sm border-b border-border">
@@ -187,7 +186,7 @@
                         // Infer category from google_category for filtering
                         const simpleCategory = product.google_category.split('>').pop().trim();
                     %>
-                        <div class="bg-card rounded-xl overflow-hidden transition-all hover:shadow-lg group border border-border">
+                        <div class="bg-card rounded-xl overflow-hidden transition-all hover:shadow-lg group border border-border product-card" data-category="<%= simpleCategory %>">
     
                             <div class="relative aspect-square bg-secondary-container overflow-hidden">
                                 
@@ -210,7 +209,7 @@
                                 </button>
                             </div>
 
-                            <div class="p-4">
+                            <div class="p-4 flex flex-col flex-grow">
                                 <div class="text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wider">
                                     <%= product.brand %>
                                 </div>
@@ -229,7 +228,7 @@
                                     <span class="text-sm text-muted-foreground">(<%= product.reviews || '10' %>)</span>
                                 </div>
 
-                                <div class="flex items-baseline gap-2 mb-4">
+                                <div class="flex items-baseline gap-2 mb-4 mt-auto">
                                     <span class="text-xl font-bold text-primary">$<%= product.price.toFixed(2) %></span>
                                     <span class="text-sm text-muted-foreground line-through decoration-destructive/40">
                                         $<%= originalPrice %>
@@ -383,10 +382,14 @@
         function toggleHeart(btn, e) {
             e.preventDefault(); 
             const svg = btn.querySelector('svg');
+            
+            // Toggle the 'filled' state
             if (btn.classList.contains('text-destructive')) {
+                // Un-like
                 btn.classList.remove('text-destructive'); 
                 svg.setAttribute('fill', 'none');
             } else {
+                // Like
                 btn.classList.add('text-destructive'); 
                 svg.setAttribute('fill', 'currentColor');
             }
@@ -397,6 +400,7 @@
             const cards = document.querySelectorAll('.product-card');
             const buttons = document.querySelectorAll('.category-btn');
             
+            // Update Active Button State
             buttons.forEach(btn => {
                 if(btn.dataset.category === category) {
                     btn.classList.add('bg-primary-container', 'text-on-primary-container');
@@ -407,16 +411,18 @@
                 }
             });
 
+            // Filter Grid
             let visibleCount = 0;
             cards.forEach(card => {
                 if (category === 'all' || card.dataset.category === category) {
-                    card.style.display = 'flex'; 
+                    card.style.display = 'flex'; // Restore flex layout
                     visibleCount++;
                 } else {
                     card.style.display = 'none';
                 }
             });
 
+            // Update Title & Count
             document.getElementById('current-category-title').innerText = category === 'all' ? 'All Products' : category;
             document.getElementById('product-count').innerText = visibleCount;
         }
