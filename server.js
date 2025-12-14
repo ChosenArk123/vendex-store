@@ -1,89 +1,91 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-const Product = require('./models/Product'); // <--- This was missing!
+const Product = require('./models/Product'); 
 
 const app = express();
 
 // Set EJS as the templating engine
 app.set('view engine', 'ejs');
+// serve static files (css, images) if you have a public folder
+app.use(express.static('public')); 
 
-// Connect to MongoDB
-const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGO_URI);
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-  } catch (error) {
-    console.error('Error connecting to MongoDB:', error.message);
-    process.exit(1); // Stop the app if DB fails, don't just hang
-  }
-};
-
-connectDB();
+// -----------------------------------------
+// ROUTES
+// -----------------------------------------
 
 // THE HOMEPAGE ROUTE (With Search)
 app.get('/', async (req, res) => {
-    // 1. Check if there is a search query in the URL
-    const searchQuery = req.query.search;
-    let mongoQuery = {};
+    try {
+        const searchQuery = req.query.search;
+        let mongoQuery = {};
 
-    // 2. If user searched, build a database filter
-    if (searchQuery) {
-        mongoQuery = {
-            $or: [
-                { title: { $regex: searchQuery, $options: 'i' } },
-                { description: { $regex: searchQuery, $options: 'i' } },
-                { brand: { $regex: searchQuery, $options: 'i' } }
-            ]
-        };
+        // If user searched, build a database filter
+        if (searchQuery) {
+            mongoQuery = {
+                $or: [
+                    { title: { $regex: searchQuery, $options: 'i' } },
+                    { description: { $regex: searchQuery, $options: 'i' } },
+                    { brand: { $regex: searchQuery, $options: 'i' } }
+                ]
+            };
+        }
+
+        const products = await Product.find(mongoQuery);
+        
+        res.render('index', { 
+            products: products, 
+            searchQuery: searchQuery || '' 
+        });
+    } catch (error) {
+        console.error("Error fetching products:", error);
+        res.status(500).send("Error loading products");
     }
-
-    // 3. Get products from MongoDB
-    const products = await Product.find(mongoQuery);
-    
-    // 4. Render the page
-    res.render('index', { 
-        products: products, 
-        searchQuery: searchQuery || '' 
-    });
 });
 
-// PRODUCT DETAIL ROUTE (Updated to use MongoDB)
+// PRODUCT DETAIL ROUTE
 app.get('/product/:id', async (req, res) => {
-    const id = parseInt(req.params.id);
-    
-    // Find product in MongoDB
-    const product = await Product.findOne({ id: id });
-    
-    if (product) {
-        res.render('product', { product: product });
-    } else {
-        res.status(404).send('Product not found');
+    try {
+        const id = parseInt(req.params.id);
+        const product = await Product.findOne({ id: id });
+        
+        if (product) {
+            res.render('product', { product: product });
+        } else {
+            res.status(404).send('Product not found');
+        }
+    } catch (error) {
+        console.error("Error fetching product details:", error);
+        res.status(500).send("Error loading product");
     }
 });
 
-// Start the server
+// -----------------------------------------
+// SERVER STARTUP (The Fix)
+// -----------------------------------------
+
 const startServer = async () => {
   try {
-    // 1. Try to connect
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log('✅ MongoDB Connected successfully');
+    // 1. Attempt to connect to MongoDB first
+    console.log('⏳ Attempting to connect to MongoDB...');
+    
+    await mongoose.connect(process.env.MONGO_URI, {
+      serverSelectionTimeoutMS: 5000 // Fail after 5s if no connection
+    });
+    
+    console.log('✅ MongoDB Connected Successfully');
 
-    // 2. Only if DB connects, start the server
+    // 2. ONLY start the server if DB connects
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
-      console.log(`Server is running on http://localhost:${PORT}`);
+      console.log(`🚀 Server is running on port ${PORT}`);
     });
 
-  } catch (error) {
-    // 3. If it fails, show the EXACT error and stop
-    console.error('❌ MongoDB Connection Error: ', error);
-    process.exit(1); // Kill the process so Render knows it failed
+  } catch (err) {
+    // 3. If DB fails, print the REAL error and stop
+    console.error('❌ MongoDB Connection Error:', err.message);
+    process.exit(1); // Stop the app so Render knows it failed
   }
 };
 
 startServer();
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
