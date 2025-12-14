@@ -96,6 +96,14 @@
 </head>
 <body class="dark min-h-screen flex flex-col">
 
+    <% 
+    // 1. Get all categories from the products list
+    const allCategories = products.map(p => p.google_category.split('>').pop().trim());
+    
+    // 2. Filter for unique ones only
+    const uniqueCategories = [...new Set(allCategories)].sort(); 
+    %>
+
     <header class="sticky top-0 z-40 bg-card shadow-sm border-b border-border">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
@@ -152,10 +160,15 @@
                 <div class="bg-card rounded-xl p-4 shadow-sm border border-border">
                     <h3 class="mb-4 font-semibold text-lg">Categories</h3>
                     <div class="space-y-2" id="category-list">
-                        <button onclick="filterCategory('all')" class="w-full text-left px-4 py-2.5 rounded-full transition-all bg-primary-container text-on-primary-container font-medium category-btn" data-category="all">All Products</button>
-                        <button onclick="filterCategory('Watches')" class="w-full text-left px-4 py-2.5 rounded-full transition-all hover:bg-secondary-container text-muted-foreground hover:text-foreground category-btn" data-category="Watches">Watches</button>
-                        <button onclick="filterCategory('Bags')" class="w-full text-left px-4 py-2.5 rounded-full transition-all hover:bg-secondary-container text-muted-foreground hover:text-foreground category-btn" data-category="Bags">Bags</button>
-                        <button onclick="filterCategory('Sunglasses')" class="w-full text-left px-4 py-2.5 rounded-full transition-all hover:bg-secondary-container text-muted-foreground hover:text-foreground category-btn" data-category="Sunglasses">Sunglasses</button>
+                        <button onclick="filterCategory('all')" class="w-full text-left px-4 py-2.5 rounded-full transition-all bg-primary-container text-on-primary-container font-medium category-btn" data-category="all">
+                            All Products
+                        </button>
+
+                        <% uniqueCategories.forEach(function(category) { %>
+                            <button onclick="filterCategory('<%= category %>')" class="w-full text-left px-4 py-2.5 rounded-full transition-all hover:bg-secondary-container text-muted-foreground hover:text-foreground category-btn" data-category="<%= category %>">
+                                <%= category %>
+                            </button>
+                        <% }); %>
                     </div>
                 </div>
             </aside>
