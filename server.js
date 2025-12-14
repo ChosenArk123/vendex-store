@@ -9,9 +9,17 @@ const app = express();
 app.set('view engine', 'ejs');
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.log(err));
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(process.env.MONGO_URI);
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.error('Error connecting to MongoDB:', error.message);
+    process.exit(1); // Stop the app if DB fails, don't just hang
+  }
+};
+
+connectDB();
 
 // THE HOMEPAGE ROUTE (With Search)
 app.get('/', async (req, res) => {
