@@ -63,6 +63,26 @@ app.get('/product/:id', async (req, res) => {
 });
 
 // Start the server
+const startServer = async () => {
+  try {
+    // 1. Try to connect
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log('✅ MongoDB Connected successfully');
+
+    // 2. Only if DB connects, start the server
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      console.log(`Server is running on http://localhost:${PORT}`);
+    });
+
+  } catch (error) {
+    // 3. If it fails, show the EXACT error and stop
+    console.error('❌ MongoDB Connection Error: ', error);
+    process.exit(1); // Kill the process so Render knows it failed
+  }
+};
+
+startServer();
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
