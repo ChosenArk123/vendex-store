@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Canceled</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        background: '#FEF7FF',
+                        card: '#FFFFFF',
+                        destructive: '#BA1A1A',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-[var(--background)] flex items-center justify-center min-h-screen font-sans">
+    <div class="bg-[var(--card)] p-8 rounded-2xl shadow-xl text-center max-w-md w-full mx-4 border border-gray-100">
+        <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-10 h-10 text-[var(--destructive)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-3">Checkout Canceled</h1>
+        <p class="text-gray-500 mb-8 leading-relaxed">Your payment was not processed. You can return to the store to continue shopping or try again.</p>
+        <a href="/" class="block w-full bg-gray-900 text-white py-4 rounded-full font-bold hover:opacity-90 transition shadow-lg">Return to Cart</a>
+    </div>
+</body>
+</html>

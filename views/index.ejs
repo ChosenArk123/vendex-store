@@ -98,9 +98,8 @@
     <% 
         // Get all categories from the products list
         const allCategories = products.map(p => p.google_category.split('>').pop().trim());
-        
         // Filter for unique ones only (so we don't have duplicates)
-        const uniqueCategories = [...new Set(allCategories)].sort(); 
+        const uniqueCategories = [...new Set(allCategories)].sort();
     %>
 
     <header class="sticky top-0 z-40 bg-card shadow-sm border-b border-border">
@@ -194,7 +193,7 @@
                         const simpleCategory = product.google_category.split('>').pop().trim();
                     %>
                         <div class="bg-card rounded-xl overflow-hidden transition-all hover:shadow-lg group border border-border product-card" data-category="<%= simpleCategory %>">
-    
+
                             <div class="relative aspect-square bg-secondary-container overflow-hidden">
                                 
                                 <a href="/product/<%= product.id %>" class="block w-full h-full">
@@ -274,11 +273,13 @@
                 <div class="flex justify-between text-sm"><span class="text-muted-foreground">Tax (10%)</span><span id="cart-tax">$0.00</span></div>
                 <div class="flex justify-between pt-2 border-t border-border font-bold text-lg"><span>Total</span><span id="cart-total" class="text-primary">$0.00</span></div>
             </div>
-            <button class="w-full bg-primary text-primary-foreground py-3.5 px-4 rounded-full hover:shadow-lg transition-all font-bold">Proceed to Checkout</button>
+            <button onclick="checkout()" class="w-full bg-primary text-primary-foreground py-3.5 px-4 rounded-full hover:shadow-lg transition-all font-bold">
+                Proceed to Checkout
+            </button>
         </div>
     </div>
 
-<script>
+    <script>
         // --- THEME LOGIC ---
         function toggleTheme() {
             document.body.classList.toggle('dark');
@@ -287,7 +288,7 @@
         if (localStorage.getItem('theme') === 'light') document.body.classList.remove('dark');
 
         // --- CART LOGIC WITH PERSISTENCE ---
-        let cart = []; 
+        let cart = [];
 
         // 1. LOAD CART ON STARTUP
         function loadCart() {
@@ -301,7 +302,7 @@
         // 2. SAVE CART TO LOCAL STORAGE
         function saveCart() {
             localStorage.setItem('vendex_cart', JSON.stringify(cart));
-            updateCartUI(); // Update UI whenever we save
+            updateCartUI(); 
         }
 
         function toggleCart() {
@@ -327,8 +328,8 @@
             } else {
                 cart.push({ ...product, quantity: 1 });
             }
-            saveCart(); // Save immediately
-            toggleCart(); // Open drawer
+            saveCart(); 
+            toggleCart(); 
         }
 
         function updateQuantity(id, change) {
@@ -336,13 +337,13 @@
             if (item) {
                 item.quantity += change;
                 if (item.quantity <= 0) cart = cart.filter(i => i.id !== id);
-                saveCart(); // Save changes
+                saveCart(); 
             }
         }
 
         function removeItem(id) {
             cart = cart.filter(i => i.id !== id);
-            saveCart(); // Save changes
+            saveCart(); 
         }
 
         function updateCartUI() {
@@ -385,19 +386,50 @@
             footer.classList.remove('hidden');
         }
 
+        // --- CHECKOUT LOGIC ---
+        async function checkout() {
+            const button = document.querySelector('#cart-footer button');
+            const originalText = button.innerText;
+            
+            button.innerText = "Processing...";
+            button.disabled = true;
+
+            try {
+                const response = await fetch('/create-checkout-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ cart: cart }) 
+                });
+
+                const data = await response.json();
+
+                if (data.url) {
+                    window.location.href = data.url;
+                } else {
+                    alert('Error creating checkout session');
+                    button.innerText = originalText;
+                    button.disabled = false;
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Something went wrong!');
+                button.innerText = originalText;
+                button.disabled = false;
+            }
+        }
+
         // --- HEART BUTTON LOGIC ---
         function toggleHeart(btn, e) {
-            e.preventDefault(); 
+            e.preventDefault();
             const svg = btn.querySelector('svg');
             
-            // Toggle the 'filled' state
             if (btn.classList.contains('text-destructive')) {
-                // Un-like
-                btn.classList.remove('text-destructive'); 
+                btn.classList.remove('text-destructive');
                 svg.setAttribute('fill', 'none');
             } else {
-                // Like
-                btn.classList.add('text-destructive'); 
+                btn.classList.add('text-destructive');
                 svg.setAttribute('fill', 'currentColor');
             }
         }
@@ -407,7 +439,6 @@
             const cards = document.querySelectorAll('.product-card');
             const buttons = document.querySelectorAll('.category-btn');
             
-            // Update Active Button State
             buttons.forEach(btn => {
                 if(btn.dataset.category === category) {
                     btn.classList.add('bg-primary-container', 'text-on-primary-container');
@@ -418,18 +449,16 @@
                 }
             });
 
-            // Filter Grid
             let visibleCount = 0;
             cards.forEach(card => {
                 if (category === 'all' || card.dataset.category === category) {
-                    card.style.display = 'flex'; // Restore flex layout
+                    card.style.display = 'flex'; 
                     visibleCount++;
                 } else {
                     card.style.display = 'none';
                 }
             });
 
-            // Update Title & Count
             document.getElementById('current-category-title').innerText = category === 'all' ? 'All Products' : category;
             document.getElementById('product-count').innerText = visibleCount;
         }
