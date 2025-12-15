@@ -13,7 +13,6 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        // Material 3 often uses more geometric sans-serifs
                         sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
                     },
                     colors: {
@@ -36,18 +35,15 @@
                     },
                     borderRadius: {
                         xl: '1rem',
-                        '2xl': '1.75rem', // Material 3 uses larger corner radii
+                        '2xl': '1.75rem',
                         '3xl': '2.5rem',
                     },
-                    // --- MATERIAL 3 MOTION TOKENS ---
                     transitionTimingFunction: {
-                        // The signature M3 curve: starts fast, slows down gently
                         'emphasized': 'cubic-bezier(0.2, 0.0, 0.0, 1.0)', 
                         'emphasized-in': 'cubic-bezier(0.3, 0.0, 0.8, 0.15)',
                         'emphasized-out': 'cubic-bezier(0.05, 0.7, 0.1, 1.0)',
                     },
                     keyframes: {
-                        // Custom animations for entering elements
                         'slide-up-fade': {
                             '0%': { opacity: '0', transform: 'translateY(20px) scale(0.95)' },
                             '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
@@ -72,7 +68,7 @@
         :root {
             --background: #FEF7FF;
             --foreground: #1D1B20;
-            --card: #F7F2FA; /* Slightly tinted for M3 surface feel */
+            --card: #F7F2FA; 
             --card-foreground: #1D1B20;
             --primary: #6750A4;
             --primary-foreground: #FFFFFF;
@@ -116,36 +112,13 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Staggered Animation Delays for Load */
         .delay-100 { animation-delay: 100ms; }
         .delay-200 { animation-delay: 200ms; }
         .delay-300 { animation-delay: 300ms; }
         
-        /* Ripple effect utility */
-        .ripple {
-            position: relative;
-            overflow: hidden;
-        }
-        .ripple::after {
-            content: "";
-            display: block;
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            pointer-events: none;
-            background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
-            background-repeat: no-repeat;
-            background-position: 50%;
-            transform: scale(10, 10);
-            opacity: 0;
-            transition: transform .5s, opacity 1s;
-        }
-        .ripple:active::after {
-            transform: scale(0, 0);
-            opacity: 0.2;
-            transition: 0s;
+        /* Utility for filled hearts */
+        .heart-filled svg {
+            fill: currentColor;
         }
     </style>
 </head>
@@ -177,12 +150,13 @@
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <button onclick="toggleTheme()" class="p-3 hover:bg-secondary-container rounded-full transition-all duration-300 ease-emphasized active:scale-90 ripple">
+                    <button onclick="toggleTheme()" class="p-3 hover:bg-secondary-container rounded-full transition-all duration-300 ease-emphasized active:scale-90">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
                     </button>
-                    <button onclick="toggleCart()" class="relative p-3 hover:bg-secondary-container rounded-full transition-all duration-300 ease-emphasized active:scale-90 ripple">
+                    
+                    <button onclick="toggleCart()" class="relative p-3 hover:bg-secondary-container rounded-full transition-all duration-300 ease-emphasized active:scale-90">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
-                        <span id="cart-badge" class="absolute top-0 right-0 h-5 w-5 flex items-center justify-center bg-destructive text-white rounded-full text-xs font-bold hidden animate-pop">0</span>
+                        <span id="cart-badge" class="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center bg-destructive text-white rounded-full text-xs font-bold hidden animate-pop shadow-sm border border-card">0</span>
                     </button>
                 </div>
             </div>
@@ -206,7 +180,7 @@
                         </p>
                         
                         <div class="pt-4 animate-enter delay-300">
-                            <a href="#shop" class="bg-primary text-primary-foreground px-8 py-4 rounded-full shadow-lg hover:shadow-2xl hover:-translate-y-1 active:scale-95 transition-all duration-300 ease-emphasized inline-flex items-center gap-3 font-semibold text-lg ripple">
+                            <a href="#shop" class="bg-primary text-primary-foreground px-8 py-4 rounded-full shadow-lg hover:shadow-2xl hover:-translate-y-1 active:scale-95 transition-all duration-300 ease-emphasized inline-flex items-center gap-3 font-semibold text-lg">
                                 Shop Now 
                                 <svg class="animate-bounce" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>
@@ -231,12 +205,12 @@
                 <div class="bg-card rounded-2xl p-5 shadow-sm border border-border/50">
                     <h3 class="mb-4 font-bold text-xl px-2">Categories</h3>
                     <div class="space-y-1" id="category-list">
-                        <button onclick="filterCategory('all')" class="w-full text-left px-5 py-3 rounded-full transition-all duration-300 ease-emphasized bg-primary-container text-on-primary-container font-semibold category-btn ripple" data-category="all">
+                        <button onclick="filterCategory('all')" class="w-full text-left px-5 py-3 rounded-full transition-all duration-300 ease-emphasized bg-primary-container text-on-primary-container font-semibold category-btn" data-category="all">
                             All Products
                         </button>
 
                         <% uniqueCategories.forEach(function(category) { %>
-                            <button onclick="filterCategory('<%= category %>')" class="w-full text-left px-5 py-3 rounded-full transition-all duration-300 ease-emphasized hover:bg-secondary-container/50 text-muted-foreground hover:text-foreground category-btn ripple" data-category="<%= category %>">
+                            <button onclick="filterCategory('<%= category %>')" class="w-full text-left px-5 py-3 rounded-full transition-all duration-300 ease-emphasized hover:bg-secondary-container/50 text-muted-foreground hover:text-foreground category-btn" data-category="<%= category %>">
                                 <%= category %>
                             </button>
                         <% }); %>
@@ -254,7 +228,6 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="product-grid">
                     <% products.forEach(function(product, index) { 
-                        // Simulate discount logic
                         const originalPrice = (product.price * 1.2).toFixed(2);
                         const discount = Math.round(((originalPrice - product.price) / originalPrice) * 100);
                         const simpleCategory = product.google_category.split('>').pop().trim();
@@ -262,9 +235,10 @@
                         <div class="bg-card rounded-2xl overflow-hidden border border-border/50 product-card relative
                                     transition-all duration-500 ease-emphasized
                                     hover:-translate-y-2 hover:shadow-2xl hover:border-primary/20
-                                    animate-enter"
+                                    animate-enter group"
                              style="animation-delay: <%= (index * 50) + 300 %>ms;"
-                             data-category="<%= simpleCategory %>">
+                             data-category="<%= simpleCategory %>"
+                             data-id="<%= product.id %>">
 
                             <div class="relative aspect-square bg-secondary-container overflow-hidden">
                                 <a href="/product/<%= product.id %>" class="block w-full h-full cursor-pointer">
@@ -280,7 +254,7 @@
                                     -<%= discount %>%
                                 </div>
                                 
-                                <button onclick="toggleHeart(this, event)" class="absolute top-3 right-3 z-10 h-10 w-10 flex items-center justify-center bg-card/90 backdrop-blur-md rounded-full shadow-sm hover:scale-110 active:scale-90 transition-all duration-300 text-muted-foreground hover:text-destructive">
+                                <button onclick="toggleHeart(this, event, <%= product.id %>)" class="heart-btn absolute top-3 right-3 z-10 h-10 w-10 flex items-center justify-center bg-card/90 backdrop-blur-md rounded-full shadow-sm hover:scale-110 active:scale-90 transition-all duration-300 text-muted-foreground hover:text-destructive" data-id="<%= product.id %>">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-all duration-300">
                                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                                     </svg>
@@ -313,7 +287,7 @@
                                     </span>
                                 </div>
 
-                                <button onclick="addToCart(<%= JSON.stringify(product) %>)" class="w-full bg-secondary-container text-on-secondary-container hover:bg-primary hover:text-primary-foreground py-3 px-4 rounded-full shadow-sm hover:shadow-lg active:scale-95 transition-all duration-300 ease-emphasized flex items-center justify-center gap-2 font-bold ripple group/btn">
+                                <button onclick="addToCart(<%= JSON.stringify(product) %>)" class="w-full bg-secondary-container text-on-secondary-container hover:bg-primary hover:text-primary-foreground py-3 px-4 rounded-full shadow-sm hover:shadow-lg active:scale-95 transition-all duration-300 ease-emphasized flex items-center justify-center gap-2 font-bold group/btn">
                                     <span class="group-active/btn:scale-125 transition-transform duration-200">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
                                     </span>
@@ -363,10 +337,49 @@
         }
         if (localStorage.getItem('theme') === 'light') document.body.classList.remove('dark');
 
-        // --- CART LOGIC WITH PERSISTENCE ---
+        // --- WISHLIST LOGIC (LocalStorage) ---
+        let wishlist = JSON.parse(localStorage.getItem('vendex_wishlist')) || [];
+
+        function toggleHeart(btn, e, productId) {
+            e.preventDefault();
+            e.stopPropagation(); // Stop clicking card from triggering navigation
+            
+            const svg = btn.querySelector('svg');
+            
+            if (wishlist.includes(productId)) {
+                // Remove from wishlist
+                wishlist = wishlist.filter(id => id !== productId);
+                btn.classList.remove('text-destructive', 'heart-filled');
+                svg.setAttribute('fill', 'none');
+            } else {
+                // Add to wishlist
+                wishlist.push(productId);
+                btn.classList.add('text-destructive', 'heart-filled');
+                svg.setAttribute('fill', 'currentColor');
+                
+                // Pop animation
+                btn.classList.add('scale-125');
+                setTimeout(() => btn.classList.remove('scale-125'), 200);
+            }
+            
+            localStorage.setItem('vendex_wishlist', JSON.stringify(wishlist));
+        }
+
+        // Apply wishlist state on load
+        function initWishlist() {
+            const heartBtns = document.querySelectorAll('.heart-btn');
+            heartBtns.forEach(btn => {
+                const id = parseInt(btn.dataset.id);
+                if (wishlist.includes(id)) {
+                    btn.classList.add('text-destructive', 'heart-filled');
+                    btn.querySelector('svg').setAttribute('fill', 'currentColor');
+                }
+            });
+        }
+
+        // --- CART LOGIC ---
         let cart = [];
 
-        // 1. LOAD CART ON STARTUP
         function loadCart() {
             const savedCart = localStorage.getItem('vendex_cart');
             if (savedCart) {
@@ -375,7 +388,6 @@
             }
         }
 
-        // 2. SAVE CART TO LOCAL STORAGE
         function saveCart() {
             localStorage.setItem('vendex_cart', JSON.stringify(cart));
             updateCartUI(); 
@@ -387,14 +399,11 @@
             const isOpen = !drawer.classList.contains('translate-x-full');
 
             if (isOpen) {
-                // CLOSE
                 drawer.classList.add('translate-x-full');
                 backdrop.classList.remove('opacity-100');
-                setTimeout(() => backdrop.classList.add('hidden'), 500); // Wait for transition
+                setTimeout(() => backdrop.classList.add('hidden'), 500); 
             } else {
-                // OPEN
                 backdrop.classList.remove('hidden');
-                // Small delay to allow display:block to apply before opacity transition
                 setTimeout(() => {
                     drawer.classList.remove('translate-x-full');
                     backdrop.classList.add('opacity-100');
@@ -435,12 +444,10 @@
             const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
             badge.innerText = totalItems;
             
-            // Pop animation for badge
             if (totalItems > 0) {
                 badge.classList.remove('hidden');
-                // Re-trigger animation
                 badge.classList.remove('animate-pop');
-                void badge.offsetWidth; // Force reflow
+                void badge.offsetWidth; 
                 badge.classList.add('animate-pop');
             } else {
                 badge.classList.add('hidden');
@@ -511,28 +518,10 @@
             }
         }
 
-        function toggleHeart(btn, e) {
-            e.preventDefault();
-            const svg = btn.querySelector('svg');
-            
-            if (btn.classList.contains('text-destructive')) {
-                btn.classList.remove('text-destructive');
-                svg.setAttribute('fill', 'none');
-            } else {
-                btn.classList.add('text-destructive');
-                svg.setAttribute('fill', 'currentColor');
-                
-                // Add pop animation
-                btn.classList.add('scale-125');
-                setTimeout(() => btn.classList.remove('scale-125'), 200);
-            }
-        }
-
         function filterCategory(category) {
             const cards = document.querySelectorAll('.product-card');
             const buttons = document.querySelectorAll('.category-btn');
             
-            // Animate buttons
             buttons.forEach(btn => {
                 if(btn.dataset.category === category) {
                     btn.classList.add('bg-primary-container', 'text-on-primary-container', 'shadow-md');
@@ -550,11 +539,9 @@
                 
                 if (matches) {
                     card.style.display = 'flex';
-                    // Re-trigger entrance animation
                     card.classList.remove('animate-enter');
-                    void card.offsetWidth; // Force reflow
+                    void card.offsetWidth; 
                     card.classList.add('animate-enter');
-                    // Reset delay so filtering feels fast
                     card.style.animationDelay = `${visibleCount * 50}ms`;
                     
                     visibleCount++;
@@ -565,7 +552,6 @@
 
             const titleElement = document.getElementById('current-category-title');
             titleElement.innerText = category === 'all' ? 'All Products' : category;
-            // Simple pop animation for text change
             titleElement.classList.remove('animate-enter');
             void titleElement.offsetWidth;
             titleElement.classList.add('animate-enter');
@@ -576,6 +562,7 @@
 
         // INITIALIZE
         loadCart();
+        initWishlist(); // Load hearts on startup
     </script>
 </body>
 </html>
