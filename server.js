@@ -2,24 +2,19 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose'); 
 const Product = require('./models/Product'); 
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); // Initialize Stripe
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); 
 
 const app = express();
 
-// Set EJS as the templating engine
 app.set('view engine', 'ejs');
-
-// serve static files (css, images) if you have a public folder
 app.use(express.static('public')); 
-
-// Middleware to parse JSON bodies (REQUIRED for passing cart data from frontend)
 app.use(express.json());
 
 // -----------------------------------------
 // ROUTES
 // -----------------------------------------
 
-// THE HOMEPAGE ROUTE (With Search)
+// HOMEPAGE
 app.get('/', async (req, res) => {
     try {
         const searchQuery = req.query.search;
@@ -35,7 +30,8 @@ app.get('/', async (req, res) => {
             };
         }
 
-        const products = await Product.find(mongoQuery);
+        // Added .lean() for faster performance
+        const products = await Product.find(mongoQuery).lean();
         
         res.render('index', { 
             products: products, 
@@ -47,14 +43,20 @@ app.get('/', async (req, res) => {
     }
 });
 
-// PRODUCT DETAIL ROUTE
+// PRODUCT DETAIL (FIXED)
 app.get('/product/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const product = await Product.findOne({ id: id });
+        
+        // 1. Added .lean() to return a plain JS object (Fixes JSON.stringify error)
+        const product = await Product.findOne({ id: id }).lean();
         
         if (product) {
-            res.render('product', { product: product });
+            // 2. Added searchQuery: '' to prevent undefined error in Header
+            res.render('product', { 
+                product: product,
+                searchQuery: '' 
+            });
         } else {
             res.status(404).send('Product not found');
         }
@@ -65,7 +67,7 @@ app.get('/product/:id', async (req, res) => {
 });
 
 // -----------------------------------------
-// STRIPE CHECKOUT ROUTES
+// CHECKOUT ROUTES
 // -----------------------------------------
 
 app.post('/create-checkout-session', async (req, res) => {
@@ -76,7 +78,6 @@ app.post('/create-checkout-session', async (req, res) => {
             return res.status(400).json({ error: 'Cart is empty' });
         }
 
-        // Map cart items to Stripe line items
         const lineItems = cart.map(item => ({
             price_data: {
                 currency: 'usd',
@@ -84,12 +85,11 @@ app.post('/create-checkout-session', async (req, res) => {
                     name: item.title,
                     images: [item.image], 
                 },
-                unit_amount: Math.round(item.price * 100), // Stripe uses cents
+                unit_amount: Math.round(item.price * 100), 
             },
             quantity: item.quantity,
         }));
 
-        // Create Session
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: lineItems,
@@ -122,22 +122,18 @@ const startServer = async () => {
   try {
     console.log('⏳ Attempting to connect to MongoDB...');
     
-    // 1. Check if the variable exists
     if (!process.env.MONGO_URI) {
         throw new Error("MONGO_URI is missing from Render Environment Variables!");
     }
 
-    // 2. Debug Log (Masked)
     console.log('URI Debug:', `[${process.env.MONGO_URI.substring(0, 10)}...]`);
 
-    // 3. Connect to MongoDB
     await mongoose.connect(process.env.MONGO_URI, {
       serverSelectionTimeoutMS: 5000 
     });
     
     console.log('✅ MongoDB Connected Successfully');
 
-    // 4. Start Server
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
       console.log(`🚀 Server is running on port ${PORT}`);
