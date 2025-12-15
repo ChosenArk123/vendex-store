@@ -40,6 +40,11 @@
     </script>
 
     <style>
+        /* Enable smooth scrolling for the whole page */
+        html {
+            scroll-behavior: smooth;
+        }
+
         :root {
             --background: #FEF7FF;
             --foreground: #1D1B20;
@@ -145,9 +150,14 @@
                         <div class="inline-block bg-tertiary-container text-on-tertiary-container px-4 py-2 rounded-full mb-4 text-sm font-medium">New Arrivals</div>
                         <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-on-primary-container mb-4 leading-tight">Summer Collection 2024</h1>
                         <p class="text-lg text-on-primary-container/80 mb-8 max-w-xl">Discover the latest tech gadgets and accessories. Get 17% off on all items.</p>
-                        <button class="bg-primary text-primary-foreground px-8 py-3.5 rounded-full hover:shadow-lg transition-all inline-flex items-center gap-2 font-medium">
-                            Shop Now <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                        </button>
+                        
+                        <a href="#shop" class="bg-primary text-primary-foreground px-8 py-3.5 rounded-full hover:shadow-lg transition-all inline-flex items-center gap-2 font-medium">
+                            Shop Now 
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>
+                            </svg>
+                        </a>
+
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="bg-card rounded-xl p-6 text-center shadow-sm"><div class="text-3xl font-bold text-primary mb-2">500+</div><div class="text-muted-foreground">Products</div></div>
@@ -159,7 +169,7 @@
             </div>
         </div>
 
-        <div class="grid lg:grid-cols-[280px_1fr] gap-8">
+        <div id="shop" class="grid lg:grid-cols-[280px_1fr] gap-8 scroll-mt-24">
             
             <aside class="hidden lg:block h-fit sticky top-24">
                 <div class="bg-card rounded-xl p-4 shadow-sm border border-border">
@@ -386,7 +396,7 @@
             footer.classList.remove('hidden');
         }
 
-        // --- CHECKOUT LOGIC ---
+        // --- CHECKOUT LOGIC (From previous step) ---
         async function checkout() {
             const button = document.querySelector('#cart-footer button');
             const originalText = button.innerText;
