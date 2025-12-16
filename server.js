@@ -6,15 +6,14 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 
+// Configuration
 app.set('view engine', 'ejs');
 app.use(express.static('public')); 
-app.use(express.json());
+app.use(express.json()); // Required for Cart data
 
 // -----------------------------------------
-// ROUTES
+// 1. HOMEPAGE ROUTE
 // -----------------------------------------
-
-// HOMEPAGE
 app.get('/', async (req, res) => {
     try {
         const searchQuery = req.query.search;
@@ -30,7 +29,7 @@ app.get('/', async (req, res) => {
             };
         }
 
-        // Added .lean() for faster performance
+        // .lean() makes the data lightweight and JSON-ready
         const products = await Product.find(mongoQuery).lean();
         
         res.render('index', { 
@@ -43,21 +42,21 @@ app.get('/', async (req, res) => {
     }
 });
 
-// PRODUCT DETAIL ROUTE (Fixed)
+// -----------------------------------------
+// 2. PRODUCT DETAIL ROUTE (FIXED)
+// -----------------------------------------
 app.get('/product/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         
-        // 1. We added .lean() here! 
-        // This converts the heavy database document into a simple JavaScript object.
-        // It prevents the "Circular Structure" error when EJS tries to stringify it.
+        // CRITICAL FIX: .lean() is required here!
+        // Without it, the EJS page crashes when trying to interpret the product data.
         const product = await Product.findOne({ id: id }).lean();
         
         if (product) {
             res.render('product', { 
                 product: product,
-                // 2. We add this so the Header search bar doesn't crash the page
-                searchQuery: '' 
+                searchQuery: '' // Prevents header error
             });
         } else {
             res.status(404).send('Product not found');
@@ -69,9 +68,8 @@ app.get('/product/:id', async (req, res) => {
 });
 
 // -----------------------------------------
-// CHECKOUT ROUTES
+// 3. CHECKOUT ROUTES (STRIPE)
 // -----------------------------------------
-
 app.post('/create-checkout-session', async (req, res) => {
     try {
         const { cart } = req.body;
@@ -119,7 +117,6 @@ app.get('/cancel', (req, res) => {
 // -----------------------------------------
 // SERVER STARTUP
 // -----------------------------------------
-
 const startServer = async () => {
   try {
     console.log('⏳ Attempting to connect to MongoDB...');
@@ -128,6 +125,7 @@ const startServer = async () => {
         throw new Error("MONGO_URI is missing from Render Environment Variables!");
     }
 
+    // Masked URI logging for safety
     console.log('URI Debug:', `[${process.env.MONGO_URI.substring(0, 10)}...]`);
 
     await mongoose.connect(process.env.MONGO_URI, {

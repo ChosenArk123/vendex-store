@@ -112,13 +112,35 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+        /* Staggered Animation Delays for Load */
         .delay-100 { animation-delay: 100ms; }
         .delay-200 { animation-delay: 200ms; }
         .delay-300 { animation-delay: 300ms; }
         
-        /* Utility for filled hearts */
-        .heart-filled svg {
-            fill: currentColor;
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+        .ripple::after {
+            content: "";
+            display: block;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+            background-repeat: no-repeat;
+            background-position: 50%;
+            transform: scale(10, 10);
+            opacity: 0;
+            transition: transform .5s, opacity 1s;
+        }
+        .ripple:active::after {
+            transform: scale(0, 0);
+            opacity: 0.2;
+            transition: 0s;
         }
     </style>
 </head>
@@ -150,11 +172,10 @@
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <button onclick="toggleTheme()" class="p-3 hover:bg-secondary-container rounded-full transition-all duration-300 ease-emphasized active:scale-90">
+                    <button onclick="toggleTheme()" class="p-3 hover:bg-secondary-container rounded-full transition-all duration-300 ease-emphasized active:scale-90 ripple">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
                     </button>
-                    
-                    <button onclick="toggleCart()" class="relative p-3 hover:bg-secondary-container rounded-full transition-all duration-300 ease-emphasized active:scale-90">
+                    <button onclick="toggleCart()" class="relative p-3 hover:bg-secondary-container rounded-full transition-all duration-300 ease-emphasized active:scale-90 ripple">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
                         <span id="cart-badge" class="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center bg-destructive text-white rounded-full text-xs font-bold hidden animate-pop shadow-sm border border-card">0</span>
                     </button>
@@ -180,7 +201,7 @@
                         </p>
                         
                         <div class="pt-4 animate-enter delay-300">
-                            <a href="#shop" class="bg-primary text-primary-foreground px-8 py-4 rounded-full shadow-lg hover:shadow-2xl hover:-translate-y-1 active:scale-95 transition-all duration-300 ease-emphasized inline-flex items-center gap-3 font-semibold text-lg">
+                            <a href="#shop" class="bg-primary text-primary-foreground px-8 py-4 rounded-full shadow-lg hover:shadow-2xl hover:-translate-y-1 active:scale-95 transition-all duration-300 ease-emphasized inline-flex items-center gap-3 font-semibold text-lg ripple">
                                 Shop Now 
                                 <svg class="animate-bounce" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>
@@ -205,12 +226,12 @@
                 <div class="bg-card rounded-2xl p-5 shadow-sm border border-border/50">
                     <h3 class="mb-4 font-bold text-xl px-2">Categories</h3>
                     <div class="space-y-1" id="category-list">
-                        <button onclick="filterCategory('all')" class="w-full text-left px-5 py-3 rounded-full transition-all duration-300 ease-emphasized bg-primary-container text-on-primary-container font-semibold category-btn" data-category="all">
+                        <button onclick="filterCategory('all')" class="w-full text-left px-5 py-3 rounded-full transition-all duration-300 ease-emphasized bg-primary-container text-on-primary-container font-semibold category-btn ripple" data-category="all">
                             All Products
                         </button>
 
                         <% uniqueCategories.forEach(function(category) { %>
-                            <button onclick="filterCategory('<%= category %>')" class="w-full text-left px-5 py-3 rounded-full transition-all duration-300 ease-emphasized hover:bg-secondary-container/50 text-muted-foreground hover:text-foreground category-btn" data-category="<%= category %>">
+                            <button onclick="filterCategory('<%= category %>')" class="w-full text-left px-5 py-3 rounded-full transition-all duration-300 ease-emphasized hover:bg-secondary-container/50 text-muted-foreground hover:text-foreground category-btn ripple" data-category="<%= category %>">
                                 <%= category %>
                             </button>
                         <% }); %>
@@ -237,8 +258,7 @@
                                     hover:-translate-y-2 hover:shadow-2xl hover:border-primary/20
                                     animate-enter group"
                              style="animation-delay: <%= (index * 50) + 300 %>ms;"
-                             data-category="<%= simpleCategory %>"
-                             data-id="<%= product.id %>">
+                             data-category="<%= simpleCategory %>">
 
                             <div class="relative aspect-square bg-secondary-container overflow-hidden">
                                 <a href="/product/<%= product.id %>" class="block w-full h-full cursor-pointer">
@@ -287,7 +307,7 @@
                                     </span>
                                 </div>
 
-                                <button onclick="addToCart(<%= JSON.stringify(product) %>)" class="w-full bg-secondary-container text-on-secondary-container hover:bg-primary hover:text-primary-foreground py-3 px-4 rounded-full shadow-sm hover:shadow-lg active:scale-95 transition-all duration-300 ease-emphasized flex items-center justify-center gap-2 font-bold group/btn">
+                                <button onclick="addToCart(<%= JSON.stringify(product) %>)" class="w-full bg-secondary-container text-on-secondary-container hover:bg-primary hover:text-primary-foreground py-3 px-4 rounded-full shadow-sm hover:shadow-lg active:scale-95 transition-all duration-300 ease-emphasized flex items-center justify-center gap-2 font-bold ripple group/btn">
                                     <span class="group-active/btn:scale-125 transition-transform duration-200">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
                                     </span>
@@ -329,6 +349,24 @@
         </div>
     </div>
 
+    <div id="demo-splash" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity duration-300 hidden opacity-0">
+        <div class="bg-card text-card-foreground p-8 rounded-3xl shadow-2xl max-w-md w-full mx-4 text-center transform transition-all duration-300 scale-95 opacity-0" id="demo-content">
+            <div class="w-16 h-16 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+            </div>
+            <h2 class="text-2xl font-bold mb-3">Demo Store</h2>
+            <p class="text-muted-foreground mb-8">
+                This is a portfolio project for demonstration purposes only. 
+                <br><br>
+                <strong>No real products are sold here.</strong> <br>
+                Please do not use real payment information.
+            </p>
+            <button onclick="dismissDemo()" class="w-full bg-primary text-primary-foreground py-4 rounded-full font-bold hover:shadow-lg hover:opacity-90 active:scale-95 transition-all duration-300">
+                I Understand
+            </button>
+        </div>
+    </div>
+
     <script>
         // --- THEME LOGIC ---
         function toggleTheme() {
@@ -337,27 +375,61 @@
         }
         if (localStorage.getItem('theme') === 'light') document.body.classList.remove('dark');
 
+        // --- SPLASH SCREEN LOGIC ---
+        function checkDemoSplash() {
+            // Check if user has already seen the splash in this session
+            if (!sessionStorage.getItem('vendex_demo_seen')) {
+                const splash = document.getElementById('demo-splash');
+                const content = document.getElementById('demo-content');
+                
+                // Show modal
+                splash.classList.remove('hidden');
+                
+                // Animate in
+                setTimeout(() => {
+                    splash.classList.remove('opacity-0');
+                    content.classList.remove('scale-95', 'opacity-0');
+                    content.classList.add('scale-100', 'opacity-100');
+                }, 100);
+            }
+        }
+
+        function dismissDemo() {
+            const splash = document.getElementById('demo-splash');
+            const content = document.getElementById('demo-content');
+            
+            // Mark as seen in session storage
+            sessionStorage.setItem('vendex_demo_seen', 'true');
+            
+            // Animate out
+            splash.classList.add('opacity-0');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+            
+            // Hide after animation
+            setTimeout(() => {
+                splash.classList.add('hidden');
+            }, 300);
+        }
+
         // --- WISHLIST LOGIC (LocalStorage) ---
         let wishlist = JSON.parse(localStorage.getItem('vendex_wishlist')) || [];
 
         function toggleHeart(btn, e, productId) {
             e.preventDefault();
-            e.stopPropagation(); // Stop clicking card from triggering navigation
+            e.stopPropagation(); 
             
             const svg = btn.querySelector('svg');
             
             if (wishlist.includes(productId)) {
-                // Remove from wishlist
                 wishlist = wishlist.filter(id => id !== productId);
-                btn.classList.remove('text-destructive', 'heart-filled');
+                btn.classList.remove('text-destructive');
                 svg.setAttribute('fill', 'none');
             } else {
-                // Add to wishlist
                 wishlist.push(productId);
-                btn.classList.add('text-destructive', 'heart-filled');
+                btn.classList.add('text-destructive');
                 svg.setAttribute('fill', 'currentColor');
                 
-                // Pop animation
                 btn.classList.add('scale-125');
                 setTimeout(() => btn.classList.remove('scale-125'), 200);
             }
@@ -365,13 +437,12 @@
             localStorage.setItem('vendex_wishlist', JSON.stringify(wishlist));
         }
 
-        // Apply wishlist state on load
         function initWishlist() {
             const heartBtns = document.querySelectorAll('.heart-btn');
             heartBtns.forEach(btn => {
                 const id = parseInt(btn.dataset.id);
                 if (wishlist.includes(id)) {
-                    btn.classList.add('text-destructive', 'heart-filled');
+                    btn.classList.add('text-destructive');
                     btn.querySelector('svg').setAttribute('fill', 'currentColor');
                 }
             });
@@ -562,7 +633,8 @@
 
         // INITIALIZE
         loadCart();
-        initWishlist(); // Load hearts on startup
+        initWishlist(); 
+        checkDemoSplash(); // Check and show splash screen
     </script>
 </body>
 </html>
