@@ -29,7 +29,6 @@ app.get('/', async (req, res) => {
             };
         }
 
-        // .lean() makes the data lightweight and JSON-ready
         const products = await Product.find(mongoQuery).lean();
         
         res.render('index', { 
@@ -43,20 +42,17 @@ app.get('/', async (req, res) => {
 });
 
 // -----------------------------------------
-// 2. PRODUCT DETAIL ROUTE (FIXED)
+// 2. PRODUCT DETAIL ROUTE
 // -----------------------------------------
 app.get('/product/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        
-        // CRITICAL FIX: .lean() is required here!
-        // Without it, the EJS page crashes when trying to interpret the product data.
         const product = await Product.findOne({ id: id }).lean();
         
         if (product) {
             res.render('product', { 
                 product: product,
-                searchQuery: '' // Prevents header error
+                searchQuery: '' 
             });
         } else {
             res.status(404).send('Product not found');
@@ -68,7 +64,55 @@ app.get('/product/:id', async (req, res) => {
 });
 
 // -----------------------------------------
-// 3. CHECKOUT ROUTES (STRIPE)
+// 3. GOOGLE SHOPPING FEED ROUTE (NEW)
+// Aligning with Week 9 & 15 of Business Plan
+// -----------------------------------------
+app.get('/feed.xml', async (req, res) => {
+    try {
+        const products = await Product.find({}).lean();
+        const siteUrl = `${req.protocol}://${req.get('host')}`;
+
+        // XML Header
+        let xml = `<?xml version="1.0"?>
+<rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">
+<channel>
+<title>Vendex Store</title>
+<link>${siteUrl}</link>
+<description>Premium Tech Store</description>`;
+
+        [cite_start]// Generate Item Blocks [cite: 2213]
+        products.forEach(p => {
+            xml += `
+<item>
+    <g:id>${p.sku || p.id}</g:id>
+    <g:title><![CDATA[${p.title}]]></g:title>
+    <g:description><![CDATA[${p.description}]]></g:description>
+    <g:link>${siteUrl}/product/${p.id}</g:link>
+    <g:image_link>${p.image}</g:image_link>
+    <g:condition>${p.condition || 'new'}</g:condition>
+    <g:availability>${p.availability || 'in_stock'}</g:availability>
+    <g:price>${p.price.toFixed(2)} USD</g:price>
+    <g:brand>${p.brand || 'Vendex'}</g:brand>
+    <g:google_product_category><![CDATA[${p.google_product_category || ''}]]></g:google_product_category>
+    ${p.gtin ? `<g:gtin>${p.gtin}</g:gtin>` : ''}
+    ${p.mpn ? `<g:mpn>${p.mpn}</g:mpn>` : ''}
+</item>`;
+        });
+
+        xml += `
+</channel>
+</rss>`;
+
+        res.header('Content-Type', 'text/xml');
+        res.send(xml);
+    } catch (err) {
+        console.error("Feed Generation Error:", err);
+        res.status(500).send('Error generating feed');
+    }
+});
+
+// -----------------------------------------
+// 4. CHECKOUT ROUTES (STRIPE)
 // -----------------------------------------
 app.post('/create-checkout-session', async (req, res) => {
     try {
@@ -122,11 +166,8 @@ const startServer = async () => {
     console.log('⏳ Attempting to connect to MongoDB...');
     
     if (!process.env.MONGO_URI) {
-        throw new Error("MONGO_URI is missing from Render Environment Variables!");
+        throw new Error("MONGO_URI is missing from Environment Variables!");
     }
-
-    // Masked URI logging for safety
-    console.log('URI Debug:', `[${process.env.MONGO_URI.substring(0, 10)}...]`);
 
     await mongoose.connect(process.env.MONGO_URI, {
       serverSelectionTimeoutMS: 5000 
