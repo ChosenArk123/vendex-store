@@ -43,18 +43,20 @@ app.get('/', async (req, res) => {
     }
 });
 
-// PRODUCT DETAIL (FIXED)
+// PRODUCT DETAIL ROUTE (Fixed)
 app.get('/product/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         
-        // 1. Added .lean() to return a plain JS object (Fixes JSON.stringify error)
+        // 1. We added .lean() here! 
+        // This converts the heavy database document into a simple JavaScript object.
+        // It prevents the "Circular Structure" error when EJS tries to stringify it.
         const product = await Product.findOne({ id: id }).lean();
         
         if (product) {
-            // 2. Added searchQuery: '' to prevent undefined error in Header
             res.render('product', { 
                 product: product,
+                // 2. We add this so the Header search bar doesn't crash the page
                 searchQuery: '' 
             });
         } else {
