@@ -159,7 +159,20 @@
     </div>
 
     <% 
-        const allCategories = products.map(p => p.google_category.split('>').pop().trim());
+        // SAFE CATEGORY EXTRACTION LOGIC
+        // This handles missing categories gracefully to prevent crashes
+        let allCategories = [];
+        if (products && products.length > 0) {
+            allCategories = products.map(function(p) {
+                var cat = p.google_product_category || p.google_category || "";
+                if (cat && typeof cat === 'string') {
+                    var parts = cat.split(">");
+                    return parts[parts.length - 1].trim();
+                }
+                return "";
+            }).filter(function(c) { return c !== ""; });
+        }
+        
         const uniqueCategories = [...new Set(allCategories)].sort();
     %>
 
@@ -188,9 +201,9 @@
                     <button onclick="toggleTheme()" class="p-3 hover:bg-white/10 rounded-full transition-all duration-300 ease-emphasized active:scale-90 ripple">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
                     </button>
-                    <button onclick="toggleCart()" class="relative p-3 hover:bg-white/10 rounded-full transition-all duration-300 ease-emphasized active:scale-90 ripple">
+                    <button onclick="toggleCart()" class="relative p-3 hover:bg-white/10 rounded-full transition-all duration-300 ease-emphasized active:scale-90">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
-                        <span id="cart-badge" class="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center bg-destructive text-white rounded-full text-xs font-bold hidden animate-pop shadow-sm border border-card">0</span>
+                        <span id="cart-badge" class="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center bg-red-600 text-white rounded-full text-xs font-bold hidden animate-pop shadow-sm border border-card">0</span>
                     </button>
                 </div>
             </div>
@@ -263,11 +276,26 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="product-grid">
-                    <% products.forEach(function(product, index) { 
-                        const originalPrice = (product.price * 1.2).toFixed(2);
-                        const discount = Math.round(((originalPrice - product.price) / originalPrice) * 100);
-                        const simpleCategory = product.google_category.split('>').pop().trim();
-                    %>
+                    <% products.forEach(function(product, index) { %>
+                        <% 
+                            // SAFE VARIABLE DECLARATION BLOCK
+                            var originalPrice = (product.price * 1.2).toFixed(2);
+                            var discount = Math.round(((originalPrice - product.price) / originalPrice) * 100);
+                            
+                            var catStr = product.google_product_category || product.google_category || "";
+                            var simpleCategory = "";
+                            if (catStr && typeof catStr === 'string') {
+                                var parts = catStr.split(">");
+                                simpleCategory = parts[parts.length - 1].trim();
+                            }
+                            
+                            // FIX: IMAGE FALLBACK
+                            var imageUrl = product.image;
+                            if (!imageUrl || imageUrl === "") {
+                                imageUrl = "https://placehold.co/600x600?text=No+Image";
+                            }
+                        %>
+                        
                         <div class="bg-card/70 backdrop-blur-sm rounded-3xl overflow-hidden border border-white/5 product-card relative
                                     transition-all duration-500 ease-emphasized
                                     hover:-translate-y-2 hover:shadow-2xl hover:bg-card hover:border-primary/20
@@ -278,14 +306,15 @@
                             <div class="relative aspect-square bg-secondary-container/50 overflow-hidden">
                                 <a href="/product/<%= product.id %>" class="block w-full h-full cursor-pointer">
                                     <img 
-                                        src="<%= product.image %>" 
+                                        src="<%= imageUrl %>" 
                                         alt="<%= product.title %>"
                                         class="w-full h-full object-cover transition-transform duration-700 ease-emphasized group-hover:scale-110"
+                                        onerror="this.onerror=null; this.src='https://placehold.co/600x600?text=Error';"
                                     />
                                     <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                 </a>
                                 
-                                <div class="absolute top-3 left-3 bg-tertiary/90 backdrop-blur-md text-tertiary-foreground px-3 py-1 rounded-full text-xs font-bold shadow-md">
+                                <div class="absolute top-3 left-3 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
                                     -<%= discount %>%
                                 </div>
                                 
