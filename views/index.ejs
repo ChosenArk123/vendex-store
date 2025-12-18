@@ -90,20 +90,20 @@
             --tertiary-container: #FFD8E4;
             --on-tertiary-container: #31111D;
             --destructive: #BA1A1A;
-            --muted-foreground: #49454F;
+            --muted-foreground: #4A4A4A;
             --border: #CAC4D0;
         }
 
         body.dark {
-            --background: #0f0e13;
+            --background: #0D0D1A;
             --foreground: #E6E1E5;
-            --card: #1D1B20;
+            --card: #1A1A2E;
             --card-foreground: #E6E1E5;
             --primary: #D0BCFF;
             --primary-foreground: #371E73;
             --primary-container: #4F378B;
             --on-primary-container: #EADDFF;
-            --secondary-container: #4A4458;
+            --secondary-container: #381E72;
             --tertiary: #EFB8C8;
             --tertiary-foreground: #492532;
             --tertiary-container: #633B48;
@@ -211,7 +211,7 @@
 
                             <input type="search" name="search" value="<%= locals.searchQuery %>"
                                 placeholder="Search products..."
-                                class="w-full pl-12 pr-4 py-3 bg-secondary-container/30 hover:bg-secondary-container/50 focus:bg-secondary-container/80 rounded-full outline-none border border-transparent focus:border-primary/50 transition-all duration-300 ease-emphasized text-foreground placeholder-muted-foreground backdrop-blur-md" />
+                                class="w-full pl-12 pr-4 py-3 bg-secondary-container/30 hover:bg-secondary-container/50 focus:bg-secondary-container/80 dark:bg-card dark:hover:bg-card dark:focus:bg-card rounded-full outline-none border border-gray-300 dark:border-transparent focus:border-primary transition-all duration-300 ease-emphasized text-foreground placeholder-muted-foreground backdrop-blur-md" />
                         </form>
                     </div>
 
@@ -253,12 +253,41 @@
         <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
 
             <div
-                class="bg-primary-container/70 backdrop-blur-2xl rounded-3xl overflow-hidden mb-12 shadow-xl border border-primary/20 relative">
+                class="bg-primary-container/70 backdrop-blur-2xl rounded-3xl overflow-hidden mb-12 shadow-xl dark:shadow-xl shadow-black/5 border border-primary/20 relative">
                 <div
                     class="absolute top-0 right-0 w-96 h-96 bg-primary/20 rounded-full filter blur-3xl translate-x-1/2 -translate-y-1/2">
                 </div>
 
                 <div class="max-w-7xl mx-auto px-6 py-12 sm:py-16 lg:py-24 relative z-10">
+                <!-- Decorative Snowflake -->
+                <div class="absolute right-8 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none hidden lg:block">
+                    <svg width="400" height="400" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="animate-spin" style="animation-duration: 20s;">
+                        <defs>
+                            <filter id="glass-blur">
+                                <feGaussianBlur in="SourceGraphic" stdDeviation="2"/>
+                            </filter>
+                        </defs>
+                        <g filter="url(#glass-blur)" fill="none" stroke="#7DD3FC" stroke-width="3" opacity="0.6">
+                            <!-- Main axes -->
+                            <line x1="100" y1="20" x2="100" y2="180" stroke-linecap="round"/>
+                            <line x1="20" y1="100" x2="180" y2="100" stroke-linecap="round"/>
+                            <line x1="35" y1="35" x2="165" y2="165" stroke-linecap="round"/>
+                            <line x1="165" y1="35" x2="35" y2="165" stroke-linecap="round"/>
+                            <!-- Branch decorations -->
+                            <circle cx="100" cy="20" r="8" fill="#7DD3FC" opacity="0.4"/>
+                            <circle cx="100" cy="180" r="8" fill="#7DD3FC" opacity="0.4"/>
+                            <circle cx="20" cy="100" r="8" fill="#7DD3FC" opacity="0.4"/>
+                            <circle cx="180" cy="100" r="8" fill="#7DD3FC" opacity="0.4"/>
+                            <circle cx="35" cy="35" r="8" fill="#7DD3FC" opacity="0.4"/>
+                            <circle cx="165" cy="165" r="8" fill="#7DD3FC" opacity="0.4"/>
+                            <circle cx="165" cy="35" r="8" fill="#7DD3FC" opacity="0.4"/>
+                            <circle cx="35" cy="165" r="8" fill="#7DD3FC" opacity="0.4"/>
+                            <!-- Center circle -->
+                            <circle cx="100" cy="100" r="12" fill="#7DD3FC" opacity="0.5" stroke-width="2"/>
+                        </g>
+                    </svg>
+                </div>
+
                     <div class="grid lg:grid-cols-2 gap-12 items-center">
                         <div class="space-y-6">
                             <div
@@ -292,22 +321,22 @@
 
                         <div class="grid grid-cols-2 gap-4 animate-enter delay-300">
                             <div
-                                class="bg-card/40 backdrop-blur-md rounded-2xl p-6 text-center hover:bg-card/60 transition-colors duration-300 border border-primary/10 shadow-sm">
+                                class="bg-primary/5 dark:bg-card/40 backdrop-blur-md rounded-2xl p-6 text-center hover:bg-primary/10 dark:hover:bg-card/60 transition-colors duration-300 border border-primary/10 shadow-sm">
                                 <div class="text-3xl font-bold text-primary mb-1">500+</div>
                                 <div class="text-sm font-medium opacity-70 uppercase tracking-wide">Products</div>
                             </div>
                             <div
-                                class="bg-card/40 backdrop-blur-md rounded-2xl p-6 text-center hover:bg-card/60 transition-colors duration-300 border border-primary/10 shadow-sm">
+                                class="bg-primary/5 dark:bg-card/40 backdrop-blur-md rounded-2xl p-6 text-center hover:bg-primary/10 dark:hover:bg-card/60 transition-colors duration-300 border border-primary/10 shadow-sm">
                                 <div class="text-3xl font-bold text-primary mb-1">5K+</div>
                                 <div class="text-sm font-medium opacity-70 uppercase tracking-wide">Customers</div>
                             </div>
                             <div
-                                class="bg-card/40 backdrop-blur-md rounded-2xl p-6 text-center hover:bg-card/60 transition-colors duration-300 border border-primary/10 shadow-sm">
+                                class="bg-primary/5 dark:bg-card/40 backdrop-blur-md rounded-2xl p-6 text-center hover:bg-primary/10 dark:hover:bg-card/60 transition-colors duration-300 border border-primary/10 shadow-sm">
                                 <div class="text-3xl font-bold text-primary mb-1">4.8★</div>
                                 <div class="text-sm font-medium opacity-70 uppercase tracking-wide">Rating</div>
                             </div>
                             <div
-                                class="bg-card/40 backdrop-blur-md rounded-2xl p-6 text-center hover:bg-card/60 transition-colors duration-300 border border-primary/10 shadow-sm">
+                                class="bg-primary/5 dark:bg-card/40 backdrop-blur-md rounded-2xl p-6 text-center hover:bg-primary/10 dark:hover:bg-card/60 transition-colors duration-300 border border-primary/10 shadow-sm">
                                 <div class="text-3xl font-bold text-primary mb-1">Fast</div>
                                 <div class="text-sm font-medium opacity-70 uppercase tracking-wide">Delivery</div>
                             </div>
@@ -319,7 +348,7 @@
             <div id="shop" class="grid lg:grid-cols-[280px_1fr] gap-10 scroll-mt-24">
 
                 <aside class="hidden lg:block h-fit sticky top-24 animate-enter delay-300">
-                    <div class="bg-card/50 backdrop-blur-lg rounded-3xl p-5 shadow-sm border border-white/10">
+                    <div class="bg-white dark:bg-card backdrop-blur-lg rounded-3xl p-5 shadow-lg dark:shadow-sm border border-gray-200 dark:border-white/10">
                         <h3 class="mb-4 font-bold text-xl px-2">Categories</h3>
                         <div class="space-y-1" id="category-list">
                             <button onclick="filterCategory('all')"
@@ -366,9 +395,9 @@
                                 imageUrl = "https://placehold.co/600x600?text=No+Image";
                                 }
                                 %>
-                                <div class="bg-card/70 backdrop-blur-sm rounded-3xl overflow-hidden border border-white/5 product-card relative
+                                <div class="bg-white dark:bg-card shadow-lg dark:shadow-md backdrop-blur-sm rounded-3xl overflow-hidden border border-gray-200 dark:border-white/5 product-card relative
                                     transition-all duration-500 ease-emphasized
-                                    hover:-translate-y-2 hover:shadow-2xl hover:bg-card hover:border-primary/20
+                                    hover:-translate-y-2 hover:shadow-2xl hover:bg-card/90 dark:hover:bg-card/85 hover:border-primary/20
                                     animate-enter group" style="animation-delay: <%= (index * 50) + 300 %>ms;"
                                     data-category="<%= simpleCategory %>">
 
@@ -424,13 +453,13 @@
                                             <span class="text-2xl font-bold text-primary">$<%= product.price.toFixed(2)
                                                     %></span>
                                             <span
-                                                class="text-sm text-muted-foreground line-through decoration-destructive/40">
+                                                class="text-sm text-gray-500/50 text-xs line-through">
                                                 $<%= originalPrice %>
                                             </span>
                                         </div>
 
                                         <button onclick="addToCart(<%= JSON.stringify(product) %>)"
-                                            class="w-full bg-secondary-container/50 hover:bg-primary hover:text-primary-foreground text-on-secondary-container py-3 px-4 rounded-full shadow-sm hover:shadow-lg active:scale-95 transition-all duration-300 ease-emphasized flex items-center justify-center gap-2 font-bold ripple group/btn backdrop-blur-sm">
+                                            class="w-full bg-transparent border border-white/20 text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary py-3 px-4 rounded-full shadow-sm hover:shadow-lg active:scale-95 transition-all duration-300 ease-emphasized flex items-center justify-center gap-2 font-bold ripple group/btn backdrop-blur-sm">
                                             <span class="group-active/btn:scale-125 transition-transform duration-200">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
                                                     viewBox="0 0 24 24" fill="none" stroke="currentColor"

@@ -85,15 +85,15 @@
         }
 
         body.dark {
-            --background: #141218;
+            --background: #0D0D1A;
             --foreground: #E6E1E5;
-            --card: #1D1B20;
+            --card: #1A1A2E;
             --card-foreground: #E6E1E5;
             --primary: #D0BCFF;
             --primary-foreground: #371E73;
             --primary-container: #4F378B;
             --on-primary-container: #EADDFF;
-            --secondary-container: #4A4458;
+            --secondary-container: #381E72;
             --tertiary: #EFB8C8;
             --tertiary-foreground: #492532;
             --destructive: #FFB4AB;
@@ -164,7 +164,7 @@
                 </a>
                 <div class="flex items-center gap-2">
                     <button onclick="toggleTheme()"
-                        class="p-3 hover:bg-secondary-container rounded-full transition-all duration-300 ease-emphasized active:scale-90">
+                        class="p-3 hover:bg-secondary-container rounded-full transition-all duration-300 ease-emphasized active:scale-90 relative z-20">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="4" />
@@ -201,9 +201,9 @@
 
             <div class="space-y-4 animate-enter">
                 <div
-                    class="relative aspect-square bg-secondary-container rounded-3xl overflow-hidden shadow-lg border border-border/50 group">
+                    class="relative aspect-square bg-neutral-900 rounded-3xl overflow-hidden shadow-lg border border-border/50 group">
                     <img src="<%= product.image %>" alt="<%= product.title %>"
-                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-emphasized" />
+                        class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700 ease-emphasized" />
                     <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none">
                     </div>
                 </div>
@@ -258,7 +258,7 @@
 
                     <div class="flex gap-4">
                         <button onclick="addToCartFromDetail()"
-                            class="flex-1 bg-primary text-primary-foreground py-4 px-8 rounded-full font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] transition-all duration-300 ease-emphasized flex items-center justify-center gap-3 group">
+                            class="flex-1 bg-gradient-to-r from-primary to-purple-400 text-primary-foreground py-4 px-8 rounded-full font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] transition-all duration-300 ease-emphasized flex items-center justify-center gap-3 group">
                             <svg class="group-active:scale-125 transition-transform" xmlns="http://www.w3.org/2000/svg"
                                 width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -269,7 +269,7 @@
                             </svg>
                             Add to Cart
                         </button>
-                        <button onclick="toggleHeart(this, event, <%= product.id %>)"
+                        <button onclick="toggleHeart(this, event, '<%= product.id %>')"
                             class="heart-btn p-4 rounded-full border border-border bg-card text-muted-foreground hover:bg-secondary-container hover:text-destructive hover:border-transparent transition-all duration-300 ease-emphasized"
                             data-id="<%= product.id %>">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
@@ -285,7 +285,7 @@
 
                 <div class="space-y-4 border-t border-border pt-8">
                     <div class="grid grid-cols-2 gap-4 mb-6">
-                        <div class="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border/50">
+                        <div class="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10">
                             <div class="bg-secondary-container p-2 rounded-xl text-on-secondary-container">
                                 <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                                     stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -300,7 +300,7 @@
                                 <div class="text-xs text-muted-foreground">SSL Encrypted</div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border/50">
+                        <div class="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10">
                             <div class="bg-secondary-container p-2 rounded-xl text-on-secondary-container">
                                 <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                                     stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -320,7 +320,7 @@
                         </div>
                     </div>
 
-                    <details
+                    <details open
                         class="group bg-card rounded-2xl border border-border/50 overflow-hidden open:pb-4 transition-all">
                         <summary
                             class="flex cursor-pointer items-center justify-between p-5 font-bold text-foreground hover:bg-secondary-container/30 transition-colors">
@@ -355,7 +355,7 @@
                         </div>
                     </details>
 
-                    <details
+                    <details open
                         class="group bg-card rounded-2xl border border-border/50 overflow-hidden open:pb-4 transition-all">
                         <summary
                             class="flex cursor-pointer items-center justify-between p-5 font-bold text-foreground hover:bg-secondary-container/30 transition-colors">
@@ -405,7 +405,8 @@
                 <div class="flex justify-between text-muted-foreground"><span class="font-medium">Tax (10%)</span><span
                         id="cart-tax">$0.00</span></div>
                 <div class="flex justify-between pt-4 border-t border-border font-bold text-2xl text-foreground">
-                    <span>Total</span><span id="cart-total" class="text-primary">$0.00</span></div>
+                    <span>Total</span><span id="cart-total" class="text-primary">$0.00</span>
+                </div>
             </div>
             <button onclick="checkout()"
                 class="w-full bg-primary text-primary-foreground py-4 px-6 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] transition-all duration-300 ease-emphasized font-bold text-lg flex items-center justify-center gap-2">
@@ -419,6 +420,7 @@
         </div>
     </div>
 
+    <script id="product-data" type="application/json"><%- JSON.stringify(product) %></script>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org/",
@@ -437,6 +439,8 @@
       }
     }
     </script>
+
+
 
     <script>
         // --- THEME LOGIC ---
@@ -520,7 +524,7 @@
         }
 
         // Add to Cart from Detail Page (uses EJS data)
-        const currentProduct = <% - JSON.stringify(product) %>;
+        const currentProduct = JSON.parse(document.getElementById('product-data').textContent);
         function addToCartFromDetail() {
             const existing = cart.find(item => item.id === currentProduct.id);
             if (existing) {
