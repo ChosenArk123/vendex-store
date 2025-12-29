@@ -19,6 +19,7 @@ const multer = require('multer');
 const csv = require('csv-parser');
 
 const app = express();
+app.set('trust proxy', 1);
 const upload = multer({ dest: 'uploads/' });
 
 // -----------------------------------------
