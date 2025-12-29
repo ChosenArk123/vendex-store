@@ -153,47 +153,63 @@ app.get('/logout', (req, res) => req.logout((err) => res.redirect('/')));
 app.get('/admin', checkAuth, async (req, res) => {
     try {
         const products = await Product.find({}).lean();
-        const stats = {
-            totalProducts: products.length,
-            syncedCount: products.filter(p => p.custom_label_0).length,
-            avgSpread: 0
-        };
+        
+        // Data Aggregation logic
+        let totalInventoryValue = 0; // Price * Stock (Assuming stock=1 for now)
+        let totalCostBasis = 0;      // Cost * Stock
+        let totalSpread = 0;
+        let syncedCount = 0;
 
-        let totalSpread = 0, spreadCount = 0;
         products.forEach(p => {
+            totalInventoryValue += (p.price || 0);
+            totalCostBasis += (p.cost || 0);
+            
             if (p.custom_label_0) {
-                const spread = ((p.price - parseFloat(p.custom_label_0)) / parseFloat(p.custom_label_0)) * 100;
+                const comp = parseFloat(p.custom_label_0);
+                const spread = ((p.price - comp) / comp) * 100;
                 p.current_spread = spread.toFixed(1);
                 totalSpread += spread;
-                spreadCount++;
+                syncedCount++;
             }
         });
-        stats.avgSpread = spreadCount > 0 ? (totalSpread / spreadCount).toFixed(1) : 0;
-        res.render('admin', { products, stats });
-    } catch (err) { res.status(500).send("Admin Load Error"); }
-});
 
+        const stats = {
+            totalProducts: products.length,
+            syncedCount: syncedCount,
+            avgSpread: syncedCount > 0 ? (totalSpread / syncedCount).toFixed(1) : 0,
+            projectedProfit: (totalInventoryValue - totalCostBasis).toFixed(2),
+            marginPotential: (((totalInventoryValue - totalCostBasis) / totalInventoryValue) * 100).toFixed(1)
+        };
+
+        res.render('admin', { products, stats });
+    } catch (err) {
+        res.status(500).send("Admin Load Error");
+    }
+});
 // --- DYNAMIC PATH LOGIC (Critical for Render vs Local) ---
 app.post('/admin/sync-now', checkAuth, (req, res) => {
     const isProd = process.env.NODE_ENV === 'production';
-    
-    // Command selection
     const pythonCmd = isProd ? 'python3' : '/Users/aniparuc/MyNodeShop/venv/bin/python3';
     
-    // Script path selection
-    const scriptPath = isProd 
-        ? path.join(__dirname, 'services', 'intelligence', 'watcher.py')
-        : '/Users/aniparuc/MyNodeShop/services/intelligence/watcher.py';
+    // We will run the Watcher, then the Brain
+    const watcherPath = path.join(__dirname, 'services', 'intelligence', 'watcher.py');
+    const brainPath = path.join(__dirname, 'services', 'intelligence', 'brain.py');
 
-    console.log(`🚀 Manual Sync Initiated. Running: ${pythonCmd} ${scriptPath}`);
+    console.log("🔄 Starting Full Intelligence Cycle...");
 
-    exec(`${pythonCmd} ${scriptPath}`, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Exec Error: ${error}`);
-            return res.status(500).json({ success: false, error: stderr });
-        }
-        console.log(`Watcher Output: ${stdout}`);
-        res.json({ success: true, message: "Market data refreshed!" });
+    // Run Scraper first
+    exec(`${pythonCmd} ${watcherPath}`, (err1, stdout1) => {
+        if (err1) return res.status(500).json({ success: false, error: "Watcher Failed" });
+        
+        console.log("✅ Watcher Finished. Starting Brain...");
+        
+        // Run Pricing Engine second
+        exec(`${pythonCmd} ${brainPath}`, (err2, stdout2) => {
+            if (err2) return res.status(500).json({ success: false, error: "Brain Failed" });
+            
+            console.log("✅ Brain Finished. Pricing Updated.");
+            res.json({ success: true, message: "Intelligence Cycle Complete: Market Scanned & Prices Adjusted." });
+        });
     });
 });
 

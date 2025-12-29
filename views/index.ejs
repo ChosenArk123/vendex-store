@@ -402,6 +402,11 @@
                                     data-category="<%= simpleCategory %>">
 
                                     <div class="relative aspect-square bg-white dark:bg-gray-800 overflow-hidden">
+                                        <% if (product.custom_label_0 && product.price < parseFloat(product.custom_label_0)) { %>
+                                            <div class="absolute top-3 left-3 z-20 px-3 py-1 rounded-full bg-green-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg animate-pop">
+                                                Market Leader: -$<%= (parseFloat(product.custom_label_0) - product.price).toFixed(2) %>
+                                            </div>
+                                        <% } %>
                                         <a href="/product/<%= product.id %>" class="block w-full h-full cursor-pointer">
                                             <img src="<%= imageUrl %>" alt="<%= product.title %>"
                                                 class="w-full h-full object-cover transition-transform duration-700 ease-emphasized group-hover:scale-110" />
