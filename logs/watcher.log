@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/Users/aniparuc/MyNodeShop/services/intelligence/watcher.py", line 4, in <module>
+    import requests
+ModuleNotFoundError: No module named 'requests'

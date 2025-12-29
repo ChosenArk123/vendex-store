@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vendex Command Center</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f4f6f8; }
+        .navbar { background: #1a1a2e; }
+        .metric-card { 
+            background: white; 
+            border: none; 
+            border-radius: 12px; 
+            padding: 20px; 
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        .metric-card:hover { transform: translateY(-5px); }
+        .table-card { border-radius: 12px; overflow: hidden; border: none; box-shadow: 0 2px 15px rgba(0,0,0,0.05); }
+        
+        /* Intelligence Coloring */
+        .profit-high { color: #198754; font-weight: bold; } /* Green */
+        .profit-med { color: #fd7e14; font-weight: bold; } /* Orange */
+        .profit-low { color: #dc3545; font-weight: bold; } /* Red */
+        
+        .spread-good { background-color: #d1e7dd; color: #0f5132; padding: 2px 6px; border-radius: 4px; }
+        .spread-bad { background-color: #f8d7da; color: #842029; padding: 2px 6px; border-radius: 4px; }
+        
+        input.cost-input { width: 80px; border: 1px solid #ced4da; border-radius: 4px; padding: 4px; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark mb-4 px-4">
+        <a class="navbar-brand fw-bold" href="#">
+            <i class="bi bi-robot me-2"></i>Vendex Intelligence
+        </a>
+        <div class="ms-auto d-flex align-items-center">
+            <span class="text-white-50 me-3">User: <strong>Admin</strong></span>
+            <a href="/logout" class="btn btn-outline-danger btn-sm">
+                <i class="bi bi-box-arrow-right me-1"></i> Logout
+            </a>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4">
+        
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <h6 class="text-muted text-uppercase mb-2">Total SKUs</h6>
+                    <h2 class="mb-0"><%= stats.totalProducts %></h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <h6 class="text-muted text-uppercase mb-2">Market Awareness</h6>
+                    <h2 class="mb-0"><%= stats.syncedCount %> <small class="fs-6 text-muted">synced</small></h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <h6 class="text-muted text-uppercase mb-2">Avg. Spread</h6>
+                    <h2 class="mb-0 <%= stats.avgSpread > 0 ? 'text-success' : 'text-danger' %>">
+                        <%= stats.avgSpread %>%
+                    </h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card bg-primary text-white">
+                    <h6 class="text-uppercase mb-2" style="opacity: 0.8">Actions</h6>
+                    <button class="btn btn-light btn-sm w-100 fw-bold text-primary" onclick="syncNow(this)">
+                        <i class="bi bi-cloud-arrow-down-fill me-1"></i> Force Market Sync
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card mb-4 border-0 shadow-sm" style="border-radius: 12px;">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="mb-1 fw-bold">Bulk Catalog Management</h5>
+                    <p class="text-muted small mb-0">Upload a CSV to sync prices, costs, and new inventory in bulk.</p>
+                </div>
+                <form id="importForm" class="d-flex gap-2">
+                    <input type="file" id="csvFile" accept=".csv" class="form-control form-control-sm" required style="max-width: 250px;">
+                    <button type="button" class="btn btn-dark btn-sm" onclick="handleImport()">
+                        <i class="bi bi-upload me-1"></i> Start Import
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card table-card">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold">Live Inventory & Pricing Strategy</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Product</th>
+                            <th>Cost (COGS)</th>
+                            <th>Our Price</th>
+                            <th>Competitor (eBay)</th>
+                            <th>Spread</th>
+                            <th>Real Margin</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% products.forEach(p => { 
+                            // 1. Safe Margin Calculation Logic
+                            let cost = p.cost || 0;
+                            let marginVal = '---'; 
+                            let marginClass = '';
+
+                            if (p.price > 0 && cost > 0) {
+                                let m = ((p.price - cost) / p.price) * 100;
+                                marginVal = m.toFixed(1) + '%';
+                                if (m > 30) marginClass = 'profit-high';
+                                else if (m > 15) marginClass = 'profit-med';
+                                else marginClass = 'profit-low';
+                            }
+
+                            // 2. Safe Spread Calculation Logic
+                            let spreadVal = '---';
+                            let spreadClass = '';
+                            
+                            if (p.custom_label_0) {
+                                let compPrice = parseFloat(p.custom_label_0);
+                                if (compPrice > 0) {
+                                    let s = ((p.price - compPrice) / compPrice) * 100;
+                                    spreadVal = s.toFixed(1) + '%';
+                                    spreadClass = s > 10 ? 'spread-bad' : 'spread-good';
+                                }
+                            }
+                        %>
+                        <tr>
+                            <td>
+                                <div class="fw-bold"><%= p.title %></div>
+                                <small class="text-muted">SKU: <%= p.sku || 'N/A' %></small>
+                            </td>
+                            
+                            <td>
+                                <div class="input-group input-group-sm" style="width: 110px;">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" value="<%= cost %>" 
+                                           onchange="updateCost('<%= p.id %>', this.value)">
+                                </div>
+                            </td>
+
+                            <td class="fw-bold">$<%= p.price.toFixed(2) %></td>
+
+                            <td>
+                                <% if (p.custom_label_0) { %>
+                                    $<%= parseFloat(p.custom_label_0).toFixed(2) %>
+                                    <br><small class="text-muted">via eBay</small>
+                                <% } else { %>
+                                    <span class="badge bg-secondary">Scanning...</span>
+                                <% } %>
+                            </td>
+
+                            <td>
+                                <span class="<%= spreadClass %>">
+                                    <%= spreadVal %>
+                                </span>
+                            </td>
+
+                            <td class="<%= marginClass %>">
+                                <%= marginVal %>
+                            </td>
+
+                            <td>
+                                <button class="btn btn-sm btn-outline-dark" onclick="window.open('/product/<%= p.id %>')">
+                                    View
+                                </button>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Trigger Python Watcher
+        async function syncNow(btn) {
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Syncing...';
+
+            try {
+                const res = await fetch('/admin/sync-now', { method: 'POST' });
+                const data = await res.json();
+                if(data.success) {
+                    alert('Market data refreshed successfully!');
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                alert('Connection error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        // Save Cost Data (AJAX)
+        async function updateCost(id, newCost) {
+            try {
+                await fetch('/admin/update-cost', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId: id, newCost: newCost })
+                });
+                location.reload(); 
+            } catch (err) {
+                alert('Failed to save cost');
+            }
+        }
+
+        async function handleImport() {
+            const fileInput = document.getElementById('csvFile');
+            if (!fileInput.files[0]) return alert("Please select a file first.");
+
+            const formData = new FormData();
+            formData.append('productCsv', fileInput.files[0]);
+
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = "Processing...";
+
+            try {
+                const res = await fetch('/admin/bulk-import', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                alert(data.message);
+                location.reload();
+            } catch (err) {
+                alert("Import failed. Check server logs.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+    </script>
+</body>
+</html>

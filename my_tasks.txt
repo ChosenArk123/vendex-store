@@ -1,0 +1,2 @@
+0 0 * * * /usr/bin/python3 /Users/aniparuc/MyNodeShop/services/intelligence/watcher.py >> /Users/aniparuc/MyNodeShop/logs/watcher.log 2>&1
+0 3 * * * /usr/bin/python3 /Users/aniparuc/MyNodeShop/services/intelligence/brain.py >> /Users/aniparuc/MyNodeShop/logs/brain.log 2>&1

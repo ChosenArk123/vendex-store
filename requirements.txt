@@ -1,0 +1,4 @@
+pymongo==4.6.1      # Database connectivity
+requests==2.31.0    # API and HTTP calls
+beautifulsoup4==4.12.2 # HTML Parsing
+python-dotenv==1.0.0 # Reading your shared .env file

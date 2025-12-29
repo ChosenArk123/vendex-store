@@ -6,6 +6,10 @@ const productSchema = new mongoose.Schema({
     title: { type: String, required: true },            
     description: { type: String, required: true },      
     price: { type: Number, required: true },
+    
+    // NEW: Cost of Goods Sold (Crucial for the Admin Dashboard Profit calculation)
+    cost: { type: Number, default: 0 }, 
+
     image: { type: String, required: true },            
     rating: { type: Number, default: 0 },
     reviews: { type: Number, default: 0 },
@@ -24,8 +28,9 @@ const productSchema = new mongoose.Schema({
     condition: { type: String, default: 'new' },         
     availability: { type: String, default: 'in_stock' }, 
     
-    // --- Ad Optimization Fields ---
-    custom_label_0: { type: String }, 
+    // --- Ad Optimization & Intelligence Fields ---
+    // The Python 'Watcher' will store the Competitor Price here
+    custom_label_0: { type: String, default: null }, 
     custom_label_1: { type: String }, 
     shipping_weight: { type: String }, 
 });
