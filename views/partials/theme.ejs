@@ -1,0 +1,232 @@
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['system-ui','-apple-system','BlinkMacSystemFont','Segoe UI','Roboto','sans-serif']
+        },
+        colors: {
+          background: 'var(--background)',
+          foreground: 'var(--foreground)',
+          card: 'var(--card)',
+          'card-foreground': 'var(--card-foreground)',
+          primary: 'var(--primary)',
+          'primary-foreground': 'var(--primary-foreground)',
+          'primary-container': 'var(--primary-container)',
+          'on-primary-container': 'var(--on-primary-container)',
+          'secondary-container': 'var(--secondary-container)',
+          tertiary: 'var(--tertiary)',
+          destructive: 'var(--destructive)',
+          'muted-foreground': 'var(--muted-foreground)',
+          border: 'var(--border)',
+        },
+        borderRadius: { xl:'1rem','2xl':'1.75rem','3xl':'2.5rem' },
+        transitionTimingFunction: { emphasized: 'cubic-bezier(0.2,0,0,1)' },
+        keyframes: {
+          'slide-up-fade': {
+            '0%': { opacity:'0', transform:'translateY(16px) scale(0.98)' },
+            '100%': { opacity:'1', transform:'translateY(0) scale(1)' }
+          },
+          'pop': { '0%': { transform:'scale(0.96)' }, '100%': { transform:'scale(1)' } },
+          'blob': {
+            '0%': { transform:'translate(0px,0px) scale(1)' },
+            '50%': { transform:'translate(24px,-30px) scale(1.08)' },
+            '100%': { transform:'translate(0px,0px) scale(1)' }
+          }
+        },
+        animation: {
+          enter: 'slide-up-fade 0.6s cubic-bezier(0.2,0,0,1) forwards',
+          pop: 'pop 0.25s cubic-bezier(0.2,0,0,1) forwards',
+          blob: 'blob 10s infinite alternate cubic-bezier(0.4,0,0.2,1)'
+        }
+      }
+    }
+  };
+</script>
+
+
+
+<style>
+  html { scroll-behavior: smooth; }
+
+  /* VIBRANT LIGHT */
+  :root{
+    --background:#FDF7FF;
+    --foreground:#1D1B20;
+    --card:#F6F1FB;
+    --card-foreground:#1D1B20;
+
+    /* richer purple + lively magenta accent */
+    --primary:#5B3FD6;
+    --primary-foreground:#FFFFFF;
+
+    --primary-container:#E5DEFF;
+    --on-primary-container:#1E0A5F;
+
+    --secondary-container:#EEE6FF;
+    --tertiary:#B44574;
+
+    --destructive:#BA1A1A;
+    --muted-foreground:#514B57;
+    --border:#CBC3D6;
+    --dot: rgba(20, 10, 40, 0.10);
+    --ambientA: color-mix(in oklab, var(--primary) 14%, transparent);
+    --ambientB: color-mix(in oklab, var(--tertiary) 12%, transparent);
+    --dotOpacity: 0.35;
+    --dotBlend: normal;
+  }
+
+  /* VIBRANT DARK */
+  html.dark{
+    --background:#0B0B14;
+    --foreground:#EEE9F2;
+    --card:#141427;
+    --card-foreground:#EEE9F2;
+
+    --primary:#B9A7FF;
+    --primary-foreground:#2B166E;
+
+    --primary-container:#3E2A98;
+    --on-primary-container:#EFE7FF;
+
+    --secondary-container:#2C1B6C;
+    --tertiary:#FF87B7;
+
+    --destructive:#FFB4AB;
+    --muted-foreground:#CFC7D6;
+    --border:#3E3A50;
+
+    --dot: rgba(255, 255, 255, 0.10);
+    --ambientA: color-mix(in oklab, var(--primary) 18%, transparent);
+    --ambientB: color-mix(in oklab, var(--tertiary) 16%, transparent);
+
+  }
+
+  body{
+    background:var(--background);
+    color:var(--foreground);
+    transition: background-color .5s cubic-bezier(0.2,0,0,1), color .5s;
+  }
+
+  .no-scrollbar::-webkit-scrollbar{ display:none; }
+  .no-scrollbar{ scrollbar-width:none; -ms-overflow-style:none; }
+
+  /* shared atoms to stop class spaghetti */
+  :root{
+  --e-emphasized: cubic-bezier(0.2,0,0,1);
+}
+
+/* shared atoms */
+  .ui-card{
+  background: color-mix(in oklab, var(--card) 86%, transparent);
+  border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+  backdrop-filter: blur(10px);
+  }
+
+  html.dark .ui-card{
+    background: color-mix(in oklab, var(--card) 72%, transparent);
+    border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+    box-shadow: 0 18px 55px rgba(0,0,0,0.18);
+  }
+
+  /* little flourish: faint highlight on hover */
+  .ui-card{
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ui-card::after{
+    content:"";
+    position:absolute;
+    inset:-2px;
+    pointer-events:none;
+    opacity:0;
+    transition: opacity 260ms var(--e-emphasized);
+    background: radial-gradient(900px 260px at 20% 0%,
+      color-mix(in oklab, var(--primary) 20%, transparent),
+      transparent 60%);
+  }
+
+  .ui-card:hover::after{ opacity:1; }
+
+
+  /* ---------- BUTTON POLISH FIX ---------- */
+
+  .btn {
+    border-radius: 9999px; /* force pill */
+    padding: 0.75rem 1.25rem;
+    position: relative;
+    overflow: hidden;
+    transition:
+      transform 220ms var(--e-emphasized),
+      box-shadow 220ms var(--e-emphasized),
+      filter 220ms var(--e-emphasized),
+      background-color 220ms var(--e-emphasized);
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 32px rgba(0,0,0,0.18);
+  }
+
+  .btn:active {
+    transform: translateY(0) scale(0.97);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.14);
+  }
+
+  /* FILLED soft button (your View → buttons) */
+  .btn-soft {
+    background: color-mix(in oklab, var(--secondary-container) 65%, transparent);
+    color: var(--foreground);
+    border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+  }
+
+  .btn-soft:hover {
+    background: color-mix(in oklab, var(--secondary-container) 85%, transparent);
+  }
+
+  /* ghost stays subtle but rounded */
+  .btn-ghost {
+    border-radius: 9999px;
+  }
+
+  /* accessibility */
+  .btn:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 4px color-mix(in oklab, var(--primary) 25%, transparent),
+      0 16px 40px rgba(0,0,0,0.18);
+  }
+
+  .chip:hover{
+    transform: translateY(-2px) scale(1.03);
+    background: color-mix(in oklab, var(--secondary-container) 46%, transparent);
+    border-color: color-mix(in oklab, var(--primary) 45%, var(--border));
+    box-shadow: 0 14px 35px rgba(0,0,0,0.18);
+  }
+
+  .chip:active{
+    transform: translateY(0px) scale(0.99);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.14);
+  }
+
+
+  
+</style>
+
+<script>
+  // Theme: store on <html> so all pages behave the same
+  (function initTheme(){
+    const saved = localStorage.getItem('theme');
+    if (saved === 'light') document.documentElement.classList.remove('dark');
+    else document.documentElement.classList.add('dark');
+  })();
+
+  function toggleTheme(){
+    document.documentElement.classList.toggle('dark');
+    localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+  }
+</script>

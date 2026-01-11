@@ -1,0 +1,183 @@
+<%- include('partials/layout_start', {
+  title: `Track Order #${order._id.toString().slice(-6)}`,
+  showCart: false,
+  headerRightHtml: `
+    <a href="/" class="chip hover:bg-secondary-container/60 transition">
+      Continue Shopping
+      <span aria-hidden="true">→</span>
+    </a>
+  `
+}) %>
+
+<section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <div class="text-center mb-12 animate-enter">
+    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-6 border border-border/60">
+      <span class="text-2xl">✓</span>
+    </div>
+    <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Order Confirmed!</h1>
+    <p class="text-lg text-muted-foreground">
+      Order ID: <span class="font-mono text-primary font-extrabold">#<%= order._id.toString().slice(-6) %></span>
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div class="lg:col-span-8 animate-enter" style="animation-delay: 80ms;">
+      <div class="ui-card p-8 h-full">
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
+          <div>
+            <div class="text-xs font-black uppercase tracking-[0.22em] text-muted-foreground mb-2">Current Status</div>
+            <div class="flex items-center gap-3">
+              <span class="relative flex h-4 w-4">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-60"></span>
+                <span class="relative inline-flex rounded-full h-4 w-4 bg-gradient-to-r from-primary to-tertiary"></span>
+              </span>
+              <span id="statusText" class="text-3xl font-extrabold capitalize"><%= order.status %></span>
+            </div>
+          </div>
+
+          <div class="text-left md:text-right">
+            <div class="text-xs font-black uppercase tracking-[0.22em] text-muted-foreground mb-2">Est. Completion</div>
+            <div class="text-xl font-extrabold">
+              <%= new Date(order.estimatedCompletion).toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' }) %>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative pt-2 pb-2">
+          <div class="overflow-hidden h-3 mb-4 text-xs flex rounded-full bg-secondary-container/40 border border-border/60">
+            <div id="progressBar" style="width:10%"
+              class="shadow-lg flex flex-col text-center whitespace-nowrap text-white justify-center
+                     bg-gradient-to-r from-primary via-tertiary to-primary transition-all duration-1000 ease-out">
+            </div>
+          </div>
+
+          <div class="flex justify-between text-[10px] sm:text-xs font-black uppercase tracking-wider text-muted-foreground">
+            <span class="<%= order.status === 'received' ? 'text-primary' : '' %>">Received</span>
+            <span class="<%= order.status === 'processing' ? 'text-primary' : '' %>">Processing</span>
+            <span class="<%= order.status === 'packing' ? 'text-primary' : '' %>">Packing</span>
+            <span class="<%= order.status === 'shipped' ? 'text-primary' : '' %>">Shipped</span>
+          </div>
+        </div>
+
+        <div class="mt-10 p-6 bg-secondary-container/25 rounded-2xl border border-border/60 flex gap-4 items-start">
+          <div class="bg-card/70 p-2 rounded-full border border-border/60 text-primary font-black">🚚</div>
+          <div>
+            <h3 class="font-extrabold text-sm">Sit tight!</h3>
+            <p class="text-sm text-muted-foreground mt-1 leading-relaxed">
+              We’re preparing your items. You’ll receive a tracking number as soon as the package leaves our warehouse.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lg:col-span-4 animate-enter" style="animation-delay: 140ms;">
+      <div class="ui-card p-6 sticky top-24">
+        <h3 class="font-extrabold mb-2 text-lg">Stay Updated</h3>
+        <p class="text-sm text-muted-foreground mb-6">Choose how you want to receive real-time alerts.</p>
+
+        <div class="flex bg-secondary-container/30 p-1 rounded-xl mb-6 border border-border/60">
+          <button onclick="switchTab('email')" id="tab-email"
+            class="flex-1 py-2.5 text-sm font-extrabold rounded-lg shadow-sm bg-card/70 text-primary transition-all duration-200">
+            Email
+          </button>
+          <button onclick="switchTab('sms')" id="tab-sms"
+            class="flex-1 py-2.5 text-sm font-extrabold rounded-lg text-muted-foreground hover:text-foreground transition-all duration-200">
+            SMS
+          </button>
+        </div>
+
+        <div id="content-email" class="space-y-4">
+          <input type="email" id="emailInput" value="<%= order.customerEmail %>"
+            class="w-full ui-card !rounded-2xl !shadow-none !p-3 !bg-secondary-container/20"
+            placeholder="name@example.com" />
+          <button onclick="savePreference('email')" class="w-full btn-hero font-extrabold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+            Get Email Updates
+          </button>
+        </div>
+
+        <div id="content-sms" class="space-y-4 hidden">
+          <input type="tel" id="phoneInput" value="<%= order.customerPhone || '' %>"
+            class="w-full ui-card !rounded-2xl !shadow-none !p-3 !bg-secondary-container/20"
+            placeholder="(555) 000-0000" />
+          <button onclick="savePreference('sms')" class="w-full btn-hero font-extrabold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+            Get Text Alerts
+          </button>
+        </div>
+      </div>
+
+      <div class="text-center mt-6">
+        <a href="/" class="text-sm font-extrabold text-muted-foreground hover:text-primary transition">
+          Need help? Contact Support
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const orderId = "<%= order._id %>";
+  const progressBar = document.getElementById('progressBar');
+  const statusText = document.getElementById('statusText');
+
+  function switchTab(type){
+    const emailBtn = document.getElementById('tab-email');
+    const smsBtn = document.getElementById('tab-sms');
+
+    emailBtn.className = type === 'email'
+      ? "flex-1 py-2.5 text-sm font-extrabold rounded-lg shadow-sm bg-card/70 text-primary transition-all duration-200"
+      : "flex-1 py-2.5 text-sm font-extrabold rounded-lg text-muted-foreground hover:text-foreground transition-all duration-200";
+
+    smsBtn.className = type === 'sms'
+      ? "flex-1 py-2.5 text-sm font-extrabold rounded-lg shadow-sm bg-card/70 text-primary transition-all duration-200"
+      : "flex-1 py-2.5 text-sm font-extrabold rounded-lg text-muted-foreground hover:text-foreground transition-all duration-200";
+
+    document.getElementById('content-email').classList.toggle('hidden', type !== 'email');
+    document.getElementById('content-sms').classList.toggle('hidden', type !== 'sms');
+  }
+
+  async function savePreference(type){
+    let value = type === 'sms' ? document.getElementById('phoneInput').value : document.getElementById('emailInput').value;
+    if(!value) return alert("Please enter valid details");
+
+    const btn = type === 'sms'
+      ? document.querySelector('#content-sms button')
+      : document.querySelector('#content-email button');
+
+    const originalText = btn.innerHTML;
+    btn.innerHTML = 'Saving...';
+    btn.disabled = true;
+
+    try{
+      const res = await fetch(`/api/order/${orderId}/notify`, {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({ method:type, value })
+      });
+      const data = await res.json();
+
+      if(data.success){
+        btn.className = "w-full bg-green-500 text-white font-extrabold py-3 rounded-xl shadow-lg cursor-default";
+        btn.innerHTML = `✓ ${type === 'sms' ? 'Texts' : 'Emails'} Enabled`;
+      } else {
+        throw new Error('Failed');
+      }
+    } catch(err){
+      btn.innerHTML = "Error. Try again.";
+      setTimeout(()=>{ btn.innerHTML = originalText; btn.disabled = false; }, 2000);
+    }
+  }
+
+  // Live polling
+  setInterval(async ()=>{
+    try{
+      const res = await fetch(`/api/order/${orderId}/status`);
+      if(!res.ok) return;
+      const data = await res.json();
+      progressBar.style.width = data.percent + "%";
+      statusText.innerText = data.status;
+    } catch(err){}
+  }, 5000);
+</script>
+
+<%- include('partials/layout_end') %>

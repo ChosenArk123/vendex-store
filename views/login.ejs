@@ -1,29 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Vendex Auth</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <style>
-        body { background: #121212; color: white; display: flex; align-items: center; justify-content: center; height: 100vh; }
-        .login-card { background: #1e1e1e; padding: 40px; border-radius: 15px; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .btn-primary { background: #007bff; border: none; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vendex Auth</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['system-ui','-apple-system','BlinkMacSystemFont','Segoe UI','Roboto','sans-serif'],
+          },
+          colors: {
+            background: 'var(--background)',
+            foreground: 'var(--foreground)',
+            card: 'var(--card)',
+            'card-foreground': 'var(--card-foreground)',
+            primary: 'var(--primary)',
+            'primary-foreground': 'var(--primary-foreground)',
+            'primary-container': 'var(--primary-container)',
+            'on-primary-container': 'var(--on-primary-container)',
+            'secondary-container': 'var(--secondary-container)',
+            tertiary: 'var(--tertiary)',
+            destructive: 'var(--destructive)',
+            'muted-foreground': 'var(--muted-foreground)',
+            border: 'var(--border)',
+          },
+          borderRadius: {
+            xl: '1rem',
+            '2xl': '1.75rem',
+            '3xl': '2.5rem',
+          },
+          transitionTimingFunction: {
+            emphasized: 'cubic-bezier(0.2, 0.0, 0.0, 1.0)',
+          },
+          keyframes: {
+            'slide-up-fade': {
+              '0%': { opacity: '0', transform: 'translateY(18px) scale(0.98)' },
+              '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+            },
+            'pop': {
+              '0%': { transform: 'scale(0.96)' },
+              '100%': { transform: 'scale(1)' },
+            }
+          },
+          animation: {
+            enter: 'slide-up-fade 0.6s cubic-bezier(0.2, 0.0, 0.0, 1.0) forwards',
+            pop: 'pop 0.25s cubic-bezier(0.2, 0.0, 0.0, 1.0) forwards',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --background: #FEF7FF;
+      --foreground: #1D1B20;
+      --card: #F7F2FA;
+      --card-foreground: #1D1B20;
+      --primary: #6750A4;
+      --primary-foreground: #FFFFFF;
+      --primary-container: #EADDFF;
+      --on-primary-container: #21005D;
+      --secondary-container: #E8DEF8;
+      --tertiary: #7D5260;
+      --destructive: #BA1A1A;
+      --muted-foreground: #4A4A4A;
+      --border: #CAC4D0;
+    }
+
+    body.dark {
+      --background: #0D0D1A;
+      --foreground: #E6E1E5;
+      --card: #1A1A2E;
+      --card-foreground: #E6E1E5;
+      --primary: #D0BCFF;
+      --primary-foreground: #371E73;
+      --primary-container: #4F378B;
+      --on-primary-container: #EADDFF;
+      --secondary-container: #381E72;
+      --tertiary: #EFB8C8;
+      --destructive: #FFB4AB;
+      --muted-foreground: #CAC4D0;
+      --border: #49454F;
+    }
+
+    body {
+      background: var(--background);
+      color: var(--foreground);
+      transition: background-color 0.5s cubic-bezier(0.2, 0.0, 0.0, 1.0), color 0.5s;
+    }
+  </style>
 </head>
-<body>
-    <div class="login-card">
-        <h2 class="text-center mb-4">Vendex Intelligence</h2>
-        <form action="/login" method="POST">
-            <div class="mb-3">
-                <label class="form-label">Username</label>
-                <input type="text" name="username" class="form-control bg-dark text-white border-secondary" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Password</label>
-                <input type="password" name="password" class="form-control bg-dark text-white border-secondary" required>
-            </div>
-            <button type="submit" class="btn btn-primary w-100 mt-3">Enter Intelligence Hub</button>
-        </form>
+
+<body class="dark min-h-screen font-sans flex items-center justify-center px-4">
+  <!-- ambient blobs (same vibe as index) -->
+  <div class="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
+    <div class="absolute -top-24 -left-24 w-[30rem] h-[30rem] bg-primary/20 rounded-full blur-[90px]"></div>
+    <div class="absolute -top-24 -right-24 w-[26rem] h-[26rem] bg-tertiary/20 rounded-full blur-[90px]"></div>
+  </div>
+
+  <div class="w-full max-w-md animate-enter">
+    <div class="bg-card/70 backdrop-blur-2xl border border-border/60 rounded-3xl shadow-2xl p-8">
+      <div class="flex items-start justify-between gap-4 mb-8">
+        <div>
+          <div class="text-xs font-black uppercase tracking-[0.22em] text-muted-foreground">Vendex</div>
+          <h1 class="text-3xl font-extrabold tracking-tight text-foreground mt-1">Sign in</h1>
+          <p class="text-sm text-muted-foreground mt-2 leading-relaxed">
+            Enter your credentials to access the Intelligence Hub.
+          </p>
+        </div>
+
+        <button
+          onclick="toggleTheme()"
+          class="p-3 rounded-full hover:bg-secondary-container/60 transition-all duration-300 ease-emphasized active:scale-90"
+          aria-label="Toggle theme"
+          title="Toggle theme"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2" /><path d="M12 20v2" />
+            <path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" />
+            <path d="M2 12h2" /><path d="M20 12h2" />
+            <path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" />
+          </svg>
+        </button>
+      </div>
+
+      <form action="/login" method="POST" class="space-y-4">
+        <div>
+          <label class="block text-sm font-semibold mb-2">Username</label>
+          <input
+            type="text"
+            name="username"
+            required
+            class="w-full px-4 py-3 rounded-2xl bg-secondary-container/30 border border-border/60
+                   focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition"
+            placeholder="yourname"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold mb-2">Password</label>
+          <input
+            type="password"
+            name="password"
+            required
+            class="w-full px-4 py-3 rounded-2xl bg-secondary-container/30 border border-border/60
+                   focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition"
+            placeholder="••••••••"
+          />
+        </div>
+
+        <button
+          type="submit"
+          class="w-full mt-2 bg-primary text-primary-foreground py-4 rounded-full font-extrabold tracking-tight
+                 shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98]
+                 transition-all duration-300 ease-emphasized animate-pop"
+        >
+          Enter Intelligence Hub
+        </button>
+
+        <p class="text-xs text-muted-foreground text-center pt-2">
+          This portal is for administrators only.
+        </p>
+      </form>
     </div>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    }
+    if (localStorage.getItem('theme') === 'light') document.body.classList.remove('dark');
+  </script>
 </body>
 </html>

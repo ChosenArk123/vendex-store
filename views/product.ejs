@@ -1,641 +1,350 @@
-<!DOCTYPE html>
-<html lang="en">
+<%
+  // Safe primitives (avoid crashes if DB fields are messy)
+  const safeTitle = product?.title || 'Product';
+  const safeBrand = product?.brand || 'Vendex';
+  const safeDesc = product?.description || 'No description available.';
+  const safeImage = (product?.image && String(product.image).trim()) ? product.image : "https://placehold.co/900x900?text=No+Image";
+  const safePrice = Number(product?.price || 0);
+  const rating = product?.rating || '4.5';
+  const reviews = product?.reviews || '10';
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>
-        <%= product.title %> | Vendex
-    </title>
+  // Normalize availability across formats: "in stock", "in_stock", "In Stock"
+  const availRaw = (product?.availability || '').toString();
+  const availNorm = availRaw.trim().toLowerCase().replace(/\s+/g, '_');
+  const inStock = (availNorm === 'in_stock' || availNorm === 'instock' || availNorm === 'available');
+%>
 
-    <script src="https://cdn.tailwindcss.com"></script>
+<%- include('partials/layout_start', { title: safeTitle + ' | Vendex', rightLink: { href: '/', label: 'Back to Shop ←' } }) %>
 
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-                    },
-                    colors: {
-                        background: 'var(--background)',
-                        foreground: 'var(--foreground)',
-                        card: 'var(--card)',
-                        'card-foreground': 'var(--card-foreground)',
-                        primary: 'var(--primary)',
-                        'primary-foreground': 'var(--primary-foreground)',
-                        'primary-container': 'var(--primary-container)',
-                        'on-primary-container': 'var(--on-primary-container)',
-                        'secondary-container': 'var(--secondary-container)',
-                        tertiary: 'var(--tertiary)',
-                        'tertiary-foreground': 'var(--tertiary-foreground)',
-                        destructive: 'var(--destructive)',
-                        'muted-foreground': 'var(--muted-foreground)',
-                        border: 'var(--border)'
-                    },
-                    borderRadius: {
-                        xl: '1rem',
-                        '2xl': '1.75rem',
-                        '3xl': '2.5rem',
-                    },
-                    transitionTimingFunction: {
-                        'emphasized': 'cubic-bezier(0.2, 0.0, 0.0, 1.0)',
-                    },
-                    keyframes: {
-                        'slide-up-fade': {
-                            '0%': { opacity: '0', transform: 'translateY(20px) scale(0.95)' },
-                            '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
-                        },
-                        'pop': {
-                            '0%': { transform: 'scale(0.9)' },
-                            '50%': { transform: 'scale(1.1)' },
-                            '100%': { transform: 'scale(1)' },
-                        }
-                    },
-                    animation: {
-                        'enter': 'slide-up-fade 0.6s cubic-bezier(0.2, 0.0, 0.0, 1.0) forwards',
-                        'pop': 'pop 0.3s cubic-bezier(0.2, 0.0, 0.0, 1.0) forwards',
-                    }
-                }
-            }
-        }
-    </script>
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <!-- Local back button (in case header rightLink is removed later) -->
+  <div class="flex items-center justify-between mb-8 animate-enter">
+    <a href="/"
+       class="chip inline-flex items-center gap-2 hover:bg-secondary-container/60 transition-all duration-300 ease-emphasized">
+      <span class="text-lg">←</span>
+      <span>Back to Shop</span>
+    </a>
+    <div></div>
+  </div>
 
-    <style>
-        html {
-            scroll-behavior: smooth;
-        }
+  <div class="grid md:grid-cols-2 gap-12 lg:gap-20 items-start">
 
-        :root {
-            --background: #FEF7FF;
-            --foreground: #1D1B20;
-            --card: #F7F2FA;
-            --card-foreground: #1D1B20;
-            --primary: #6750A4;
-            --primary-foreground: #FFFFFF;
-            --primary-container: #EADDFF;
-            --on-primary-container: #21005D;
-            --secondary-container: #E8DEF8;
-            --tertiary: #7D5260;
-            --tertiary-foreground: #FFFFFF;
-            --destructive: #BA1A1A;
-            --muted-foreground: #49454F;
-            --border: #CAC4D0;
-        }
+    <!-- Media -->
+    <div class="space-y-4 animate-enter">
+      <div class="relative aspect-square rounded-3xl overflow-hidden shadow-lg border border-border/50 bg-secondary-container/10">
+        <img
+          src="<%= safeImage %>"
+          alt="<%= safeTitle %>"
+          class="w-full h-full object-contain hover:scale-105 transition-transform duration-700 ease-emphasized"
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/15 to-transparent pointer-events-none"></div>
+      </div>
 
-        body.dark {
-            --background: #0D0D1A;
-            --foreground: #E6E1E5;
-            --card: #1A1A2E;
-            --card-foreground: #E6E1E5;
-            --primary: #D0BCFF;
-            --primary-foreground: #371E73;
-            --primary-container: #4F378B;
-            --on-primary-container: #EADDFF;
-            --secondary-container: #381E72;
-            --tertiary: #EFB8C8;
-            --tertiary-foreground: #492532;
-            --destructive: #FFB4AB;
-            --muted-foreground: #CAC4D0;
-            --border: #49454F;
-        }
-
-        body {
-            background-color: var(--background);
-            color: var(--foreground);
-            transition: background-color 0.5s cubic-bezier(0.2, 0.0, 0.0, 1.0), color 0.5s;
-        }
-
-        /* Custom styles for native details/summary animation */
-        details>summary {
-            list-style: none;
-        }
-
-        details>summary::-webkit-details-marker {
-            display: none;
-        }
-
-        details[open] summary~* {
-            animation: sweep .3s ease-in-out;
-        }
-
-        @keyframes sweep {
-            0% {
-                opacity: 0;
-                transform: translateY(-10px)
-            }
-
-            100% {
-                opacity: 1;
-                transform: translateY(0)
-            }
-        }
-
-        .chevron {
-            transition: transform 0.3s cubic-bezier(0.2, 0.0, 0.0, 1.0);
-        }
-
-        details[open] .chevron {
-            transform: rotate(180deg);
-        }
-
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-    </style>
-</head>
-
-<body class="dark min-h-screen flex flex-col font-sans">
-
-    <header
-        class="sticky top-0 z-40 bg-card/80 backdrop-blur-md shadow-sm border-b border-border transition-all duration-300">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <a href="/" class="flex items-center gap-3 no-underline group">
-                    <button
-                        class="p-2 -ml-2 rounded-full hover:bg-secondary-container transition-colors group-hover:text-primary">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="m15 18-6-6 6-6" />
-                        </svg>
-                    </button>
-                    <h1 class="text-2xl font-bold text-primary tracking-tight">Vendex</h1>
-                </a>
-                <div class="flex items-center gap-2">
-                    <button onclick="toggleTheme()"
-                        class="p-3 hover:bg-secondary-container rounded-full transition-all duration-300 ease-emphasized active:scale-90 relative z-20">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="4" />
-                            <path d="M12 2v2" />
-                            <path d="M12 20v2" />
-                            <path d="m4.93 4.93 1.41 1.41" />
-                            <path d="m17.66 17.66 1.41 1.41" />
-                            <path d="M2 12h2" />
-                            <path d="M20 12h2" />
-                            <path d="m6.34 17.66-1.41 1.41" />
-                            <path d="m19.07 4.93-1.41 1.41" />
-                        </svg>
-                    </button>
-                    <button onclick="toggleCart()"
-                        class="relative p-3 hover:bg-secondary-container rounded-full transition-all duration-300 ease-emphasized active:scale-90">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="8" cy="21" r="1" />
-                            <circle cx="19" cy="21" r="1" />
-                            <path
-                                d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
-                        </svg>
-                        <span id="cart-badge"
-                            class="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center bg-destructive text-white rounded-full text-xs font-bold hidden animate-pop shadow-sm border border-card">0</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
-
-        <div class="grid md:grid-cols-2 gap-12 lg:gap-20 items-start">
-
-            <div class="space-y-4 animate-enter">
-                <div
-                    class="relative aspect-square bg-neutral-900 rounded-3xl overflow-hidden shadow-lg border border-border/50 group">
-                    <img src="<%= product.image %>" alt="<%= product.title %>"
-                        class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700 ease-emphasized" />
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none">
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex flex-col gap-8 animate-enter" style="animation-delay: 100ms;">
-                <div>
-                    <div class="flex items-center gap-3 mb-4">
-                        <span
-                            class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-bold uppercase tracking-wide">
-                            <%= product.brand %>
-                        </span>
-                        <div class="flex items-center gap-1 text-yellow-500">
-                            <span>★</span>
-                            <span class="font-bold text-foreground">
-                                <%= product.rating || '4.5' %>
-                            </span>
-                            <span class="text-muted-foreground ml-1 text-sm">(<%= product.reviews || '10' %>
-                                    Reviews)</span>
-                        </div>
-                    </div>
-
-                    <h1 class="text-4xl sm:text-5xl font-bold text-foreground mb-4 leading-tight tracking-tight">
-                        <%= product.title %>
-                    </h1>
-
-                    <div class="flex items-center gap-4 mb-6">
-                        <div class="text-4xl font-bold text-primary">
-                            $<%= product.price.toFixed(2) %>
-                        </div>
-                        <% if(product.availability==='in stock' ) { %>
-                            <span
-                                class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide text-green-700 bg-green-100/80 border border-green-200/50 backdrop-blur-md dark:bg-green-900/30 dark:text-green-300 dark:border-green-800/30 shadow-sm">
-                                <span class="relative flex h-2 w-2">
-                                    <span
-                                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                                </span>
-                                In Stock
-                            </span>
-                            <% } else { %>
-                                <span
-                                    class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide text-red-700 bg-red-100/80 border border-red-200/50 backdrop-blur-md dark:bg-red-900/30 dark:text-red-300 dark:border-red-800/30 shadow-sm">
-                                    <%= product.availability %>
-                                </span>
-                                <% } %>
-                    </div>
-
-                    <p class="text-lg text-muted-foreground leading-relaxed mb-8">
-                        <%= product.description %>
-                    </p>
-
-                    <div class="flex gap-4">
-                        <button onclick="addToCartFromDetail()"
-                            class="flex-1 bg-gradient-to-r from-primary to-purple-400 text-primary-foreground py-4 px-8 rounded-full font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] transition-all duration-300 ease-emphasized flex items-center justify-center gap-3 group">
-                            <svg class="group-active:scale-125 transition-transform" xmlns="http://www.w3.org/2000/svg"
-                                width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="8" cy="21" r="1" />
-                                <circle cx="19" cy="21" r="1" />
-                                <path
-                                    d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
-                            </svg>
-                            Add to Cart
-                        </button>
-                        <button onclick="toggleHeart(this, event, '<%= product.id %>')"
-                            class="heart-btn p-4 rounded-full border border-border bg-card text-muted-foreground hover:bg-secondary-container hover:text-destructive hover:border-transparent transition-all duration-300 ease-emphasized"
-                            data-id="<%= product.id %>">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <path
-                                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
-                                </path>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="space-y-4 border-t border-border pt-8">
-                    <div class="grid grid-cols-2 gap-4 mb-6">
-                        <div class="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10">
-                            <div class="bg-secondary-container p-2 rounded-xl text-on-secondary-container">
-                                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-                                    <line x1="8" y1="21" x2="16" y2="21" />
-                                    <line x1="12" y1="17" x2="12" y2="21" />
-                                </svg>
-                            </div>
-                            <div>
-                                <div class="font-bold text-foreground">Secure</div>
-                                <div class="text-xs text-muted-foreground">SSL Encrypted</div>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10">
-                            <div class="bg-secondary-container p-2 rounded-xl text-on-secondary-container">
-                                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <rect x="1" y="3" width="15" height="13" rx="2" ry="2" />
-                                    <polyline points="16 8 20 8 23 11 23 16 16 16 16 14" />
-                                    <circle cx="5.5" cy="18.5" r="2.5" />
-                                    <circle cx="18.5" cy="18.5" r="2.5" />
-                                </svg>
-                            </div>
-                            <div>
-                                <div class="font-bold text-foreground">Fast Ship</div>
-                                <div class="text-xs text-muted-foreground">
-                                    <%= product.shipping_time || '2-4 Days' %>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <details open
-                        class="group bg-card rounded-2xl border border-border/50 overflow-hidden open:pb-4 transition-all">
-                        <summary
-                            class="flex cursor-pointer items-center justify-between p-5 font-bold text-foreground hover:bg-secondary-container/30 transition-colors">
-                            <span>Key Features</span>
-                            <span class="chevron transition-transform text-muted-foreground">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <path d="m6 9 6 6 6-6" />
-                                </svg>
-                            </span>
-                        </summary>
-                        <div class="px-5 pt-2 text-muted-foreground">
-                            <% if(product.features) { %>
-                                <ul class="space-y-3">
-                                    <% product.features.forEach(function(feature) { %>
-                                        <li class="flex items-start gap-3">
-                                            <svg class="w-5 h-5 text-primary mt-0.5" xmlns="http://www.w3.org/2000/svg"
-                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                                stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M20 6 9 17l-5-5" />
-                                            </svg>
-                                            <span>
-                                                <%= feature %>
-                                            </span>
-                                        </li>
-                                        <% }); %>
-                                </ul>
-                                <% } else { %>
-                                    <p>No specific features listed for this item.</p>
-                                    <% } %>
-                        </div>
-                    </details>
-
-                    <details open
-                        class="group bg-card rounded-2xl border border-border/50 overflow-hidden open:pb-4 transition-all">
-                        <summary
-                            class="flex cursor-pointer items-center justify-between p-5 font-bold text-foreground hover:bg-secondary-container/30 transition-colors">
-                            <span>Shipping & Returns</span>
-                            <span class="chevron transition-transform text-muted-foreground">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <path d="m6 9 6 6 6-6" />
-                                </svg>
-                            </span>
-                        </summary>
-                        <div class="px-5 pt-2 text-muted-foreground leading-relaxed">
-                            <p>We offer fast shipping worldwide. Returns are accepted within 30 days of purchase for a
-                                full refund if the item is in original condition.</p>
-                        </div>
-                    </details>
-                </div>
-
-            </div>
-        </div>
-    </main>
-
-    <div id="cart-backdrop" onclick="toggleCart()"
-        class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden transition-opacity duration-500 ease-emphasized opacity-0">
+      <!-- subtle metadata row -->
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="chip text-primary"><%= safeBrand %></span>
+        <span class="chip text-muted-foreground">ID: <%= product.id %></span>
+      </div>
     </div>
 
-    <div id="cart-drawer"
-        class="fixed right-0 top-0 h-full w-full max-w-md bg-card z-50 shadow-2xl flex flex-col transform translate-x-full transition-transform duration-500 ease-emphasized border-l border-border">
-        <div class="flex items-center justify-between p-6 border-b border-border bg-card/80 backdrop-blur-xl">
-            <h2 class="text-2xl font-bold tracking-tight">Shopping Cart</h2>
-            <button onclick="toggleCart()"
-                class="p-2 hover:bg-secondary-container rounded-full transition-all duration-200 active:scale-90">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-            </button>
+    <!-- Content -->
+    <div class="flex flex-col gap-8 animate-enter" style="animation-delay: 100ms;">
+      <div>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="flex items-center gap-1 text-yellow-500">
+            <span>★</span>
+            <span class="font-extrabold text-foreground"><%= rating %></span>
+            <span class="text-muted-foreground ml-1 text-sm">(<%= reviews %> Reviews)</span>
+          </div>
         </div>
-        <div id="cart-items-container" class="flex-1 overflow-y-auto p-6 space-y-6">
-        </div>
-        <div id="cart-footer" class="border-t border-border p-6 space-y-6 hidden bg-card/80 backdrop-blur-xl">
-            <div class="space-y-3">
-                <div class="flex justify-between text-muted-foreground"><span class="font-medium">Subtotal</span><span
-                        id="cart-subtotal">$0.00</span></div>
-                <div class="flex justify-between text-muted-foreground"><span class="font-medium">Tax (10%)</span><span
-                        id="cart-tax">$0.00</span></div>
-                <div class="flex justify-between pt-4 border-t border-border font-bold text-2xl text-foreground">
-                    <span>Total</span><span id="cart-total" class="text-primary">$0.00</span>
-                </div>
-            </div>
-            <button onclick="checkout()"
-                class="w-full bg-primary text-primary-foreground py-4 px-6 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] transition-all duration-300 ease-emphasized font-bold text-lg flex items-center justify-center gap-2">
-                Proceed to Checkout
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M5 12h14" />
-                    <path d="m12 5 7 7-7 7" />
-                </svg>
-            </button>
-        </div>
-    </div>
 
-    <script id="product-data" type="application/json"><%- JSON.stringify(product) %></script>
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org/",
-      "@type": "Product",
-      "name": "<%= product.title %>",
-      "image": [ "<%= product.image %>" ],
-      "description": "<%= product.description %>",
-      "sku": "<%= product.sku %>",
-      "brand": { "@type": "Brand", "name": "<%= product.brand %>" },
-      "offers": {
-        "@type": "Offer",
-        "url": "http://localhost:3000/product/<%= product.id %>",
-        "priceCurrency": "USD",
-        "price": "<%= product.price %>",
-        "availability": "https://schema.org/<%= product.availability === 'in stock' ? 'InStock' : 'OutOfStock' %>"
-      }
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-foreground mb-4 leading-tight tracking-tight">
+          <%= safeTitle %>
+        </h1>
+
+        <div class="flex items-center gap-4 mb-6">
+          <div class="text-4xl font-extrabold text-primary">$<%= safePrice.toFixed(2) %></div>
+
+          <% if (inStock) { %>
+            <span class="chip bg-green-500/10 border-green-500/20 text-green-600">
+              <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              In Stock
+            </span>
+          <% } else { %>
+            <span class="chip bg-destructive/10 border-border/60 text-destructive">
+              <%= availRaw || 'Out of Stock' %>
+            </span>
+          <% } %>
+        </div>
+
+        <p class="text-lg text-muted-foreground leading-relaxed mb-8"><%= safeDesc %></p>
+
+        <div class="flex gap-4">
+          <button onclick="addToCartFromDetail()"
+            class="flex-1 btn-hero py-4 px-8 rounded-full font-extrabold text-lg shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-[0.98]
+                   transition-all duration-300 ease-emphasized flex items-center justify-center gap-3">
+            <svg class="transition-transform group-active:scale-125" xmlns="http://www.w3.org/2000/svg"
+              width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="8" cy="21" r="1" /><circle cx="19" cy="21" r="1" />
+              <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
+            </svg>
+            Add to Cart
+          </button>
+
+          <!-- No EJS inside JS expression; use dataset only -->
+          <button
+            type="button"
+            class="heart-btn p-4 rounded-full border border-border bg-card/70 text-muted-foreground hover:bg-secondary-container/60 hover:text-destructive hover:border-transparent transition-all duration-300 ease-emphasized"
+            data-id="<%= product.id %>"
+            onclick="toggleHeart(this, event)"
+            aria-label="Add to wishlist"
+            title="Wishlist"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="space-y-4 border-t border-border pt-8">
+        <details open class="ui-card overflow-hidden rounded-3xl">
+          <summary class="flex cursor-pointer items-center justify-between p-5 font-extrabold hover:bg-secondary-container/30 transition">
+            <span>Key Features</span>
+            <span class="text-muted-foreground">▾</span>
+          </summary>
+          <div class="px-5 pb-5 text-muted-foreground">
+            <% if (product.features && Array.isArray(product.features) && product.features.length) { %>
+              <ul class="space-y-3">
+                <% product.features.forEach(function(feature){ %>
+                  <li class="flex items-start gap-3">
+                    <span class="text-primary font-black">✓</span>
+                    <span><%= feature %></span>
+                  </li>
+                <% }) %>
+              </ul>
+            <% } else { %>
+              <p>No specific features listed for this item.</p>
+            <% } %>
+          </div>
+        </details>
+
+        <details open class="ui-card overflow-hidden rounded-3xl">
+          <summary class="flex cursor-pointer items-center justify-between p-5 font-extrabold hover:bg-secondary-container/30 transition">
+            <span>Shipping & Returns</span>
+            <span class="text-muted-foreground">▾</span>
+          </summary>
+          <div class="px-5 pb-5 text-muted-foreground">
+            <p>Fast shipping worldwide. Returns accepted within 30 days if the item is in original condition.</p>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Shared cart drawer (same as index; keep to avoid breaking routes) -->
+<div id="cart-backdrop" onclick="toggleCart()"
+  class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden transition-opacity duration-500 ease-emphasized opacity-0"></div>
+
+<div id="cart-drawer"
+  class="fixed right-0 top-0 h-full w-full max-w-md bg-card z-50 shadow-2xl flex flex-col transform translate-x-full transition-transform duration-500 ease-emphasized border-l border-border">
+  <div class="flex items-center justify-between p-6 border-b border-border bg-card/80 backdrop-blur-xl">
+    <h2 class="text-2xl font-extrabold tracking-tight">Shopping Cart</h2>
+    <button onclick="toggleCart()" class="p-2 hover:bg-secondary-container rounded-full transition-all duration-200 active:scale-90">✕</button>
+  </div>
+  <div id="cart-items-container" class="flex-1 overflow-y-auto p-6 space-y-6"></div>
+  <div id="cart-footer" class="border-t border-border p-6 space-y-6 hidden bg-card/80 backdrop-blur-xl">
+    <div class="space-y-3">
+      <div class="flex justify-between text-muted-foreground"><span class="font-medium">Subtotal</span><span id="cart-subtotal">$0.00</span></div>
+      <div class="flex justify-between text-muted-foreground"><span class="font-medium">Tax (10%)</span><span id="cart-tax">$0.00</span></div>
+      <div class="flex justify-between pt-4 border-t border-border font-extrabold text-2xl text-foreground">
+        <span>Total</span><span id="cart-total" class="text-primary">$0.00</span>
+      </div>
+    </div>
+    <button onclick="checkout()" class="w-full btn-hero py-4 px-6 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] transition-all duration-300 ease-emphasized font-extrabold text-lg">
+      Proceed to Checkout
+    </button>
+  </div>
+</div>
+
+<%- include('partials/components/toast') %>
+
+<script id="product-data" type="application/json"><%- JSON.stringify(product) %></script>
+
+<script>
+  // Wishlist (normalize to numbers)
+  let wishlist = (JSON.parse(localStorage.getItem('vendex_wishlist')) || []).map(Number);
+
+  function toggleHeart(btn, e){
+    e.preventDefault();
+    e.stopPropagation();
+
+    const id = Number(btn.dataset.id);
+    const svg = btn.querySelector('svg');
+    const has = wishlist.includes(id);
+
+    if (has){
+      wishlist = wishlist.filter(x => x !== id);
+      svg.setAttribute('fill','none');
+    } else {
+      wishlist.push(id);
+      svg.setAttribute('fill','currentColor');
+      btn.classList.add('scale-125');
+      setTimeout(()=>btn.classList.remove('scale-125'),200);
     }
-    </script>
 
+    localStorage.setItem('vendex_wishlist', JSON.stringify(wishlist));
+  }
 
+  function initWishlist(){
+    document.querySelectorAll('.heart-btn').forEach(btn=>{
+      const id = Number(btn.dataset.id);
+      if (wishlist.includes(id)) btn.querySelector('svg').setAttribute('fill','currentColor');
+    });
+  }
 
-    <script>
-        // --- THEME LOGIC ---
-        function toggleTheme() {
-            document.body.classList.toggle('dark');
-            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
-        }
-        if (localStorage.getItem('theme') === 'light') {
-            document.body.classList.remove('dark');
-        }
+  // Cart
+  let cart = [];
 
-        // --- WISHLIST LOGIC (LocalStorage) ---
-        let wishlist = JSON.parse(localStorage.getItem('vendex_wishlist')) || [];
+  function loadCart(){
+    const saved = localStorage.getItem('vendex_cart');
+    if(saved){
+      try { cart = JSON.parse(saved) || []; }
+      catch { cart = []; }
+      updateCartUI();
+    } else {
+      updateCartUI();
+    }
+  }
 
-        function toggleHeart(btn, e, productId) {
-            e.preventDefault();
-            const svg = btn.querySelector('svg');
+  function saveCart(){
+    localStorage.setItem('vendex_cart', JSON.stringify(cart));
+    updateCartUI();
+  }
 
-            if (wishlist.includes(productId)) {
-                wishlist = wishlist.filter(id => id !== productId);
-                btn.classList.remove('text-destructive', 'border-transparent');
-                btn.classList.add('text-muted-foreground', 'border-border');
-                svg.setAttribute('fill', 'none');
-            } else {
-                wishlist.push(productId);
-                btn.classList.add('text-destructive', 'border-transparent');
-                btn.classList.remove('text-muted-foreground', 'border-border');
-                svg.setAttribute('fill', 'currentColor');
+  function toggleCart(){
+    const drawer = document.getElementById('cart-drawer');
+    const backdrop = document.getElementById('cart-backdrop');
+    const isOpen = !drawer.classList.contains('translate-x-full');
 
-                btn.classList.add('scale-125');
-                setTimeout(() => btn.classList.remove('scale-125'), 200);
-            }
+    if(isOpen){
+      drawer.classList.add('translate-x-full');
+      backdrop.classList.remove('opacity-100');
+      setTimeout(()=>backdrop.classList.add('hidden'), 500);
+    } else {
+      backdrop.classList.remove('hidden');
+      setTimeout(()=>{
+        drawer.classList.remove('translate-x-full');
+        backdrop.classList.add('opacity-100');
+      }, 10);
+    }
+  }
 
-            localStorage.setItem('vendex_wishlist', JSON.stringify(wishlist));
-        }
+  function updateQuantity(id, change){
+    id = Number(id);
+    const item = cart.find(i => Number(i.id) === id);
+    if(!item) return;
 
-        function initWishlist() {
-            const heartBtns = document.querySelectorAll('.heart-btn');
-            heartBtns.forEach(btn => {
-                const id = parseInt(btn.dataset.id);
-                if (wishlist.includes(id)) {
-                    btn.classList.add('text-destructive', 'border-transparent');
-                    btn.classList.remove('text-muted-foreground', 'border-border');
-                    btn.querySelector('svg').setAttribute('fill', 'currentColor');
-                }
-            });
-        }
+    item.quantity = Number(item.quantity || 0) + change;
+    if(item.quantity <= 0) cart = cart.filter(i => Number(i.id) !== id);
+    saveCart();
+  }
 
-        // --- SHARED CART LOGIC ---
-        let cart = [];
+  function removeItem(id){
+    id = Number(id);
+    cart = cart.filter(i => Number(i.id) !== id);
+    saveCart();
+  }
 
-        function loadCart() {
-            const savedCart = localStorage.getItem('vendex_cart');
-            if (savedCart) {
-                cart = JSON.parse(savedCart);
-                updateCartUI();
-            }
-        }
+  function updateCartUI(){
+    const container = document.getElementById('cart-items-container');
+    const footer = document.getElementById('cart-footer');
+    const badge = document.getElementById('cart-badge'); // may not exist on some pages
 
-        function saveCart() {
-            localStorage.setItem('vendex_cart', JSON.stringify(cart));
-            updateCartUI();
-        }
+    const totalItems = cart.reduce((a,i)=> a + Number(i.quantity || 0), 0);
+    if (badge){
+      badge.innerText = totalItems;
+      totalItems>0 ? badge.classList.remove('hidden') : badge.classList.add('hidden');
+    }
 
-        function toggleCart() {
-            const drawer = document.getElementById('cart-drawer');
-            const backdrop = document.getElementById('cart-backdrop');
-            const isOpen = !drawer.classList.contains('translate-x-full');
+    if(cart.length===0){
+      container.innerHTML = `<div class="text-muted-foreground">Your cart is empty</div>`;
+      footer.classList.add('hidden');
+      return;
+    }
 
-            if (isOpen) {
-                drawer.classList.add('translate-x-full');
-                backdrop.classList.remove('opacity-100');
-                setTimeout(() => backdrop.classList.add('hidden'), 500);
-            } else {
-                backdrop.classList.remove('hidden');
-                setTimeout(() => {
-                    drawer.classList.remove('translate-x-full');
-                    backdrop.classList.add('opacity-100');
-                }, 10);
-            }
-        }
+    container.innerHTML = cart.map(item => `
+      <div class="flex gap-4 bg-secondary-container/30 rounded-2xl p-3">
+        <img src="${item.image || ''}" class="w-20 h-20 object-cover rounded-xl flex-shrink-0" />
+        <div class="flex-1 min-w-0">
+          <div class="font-extrabold line-clamp-1">${item.title || 'Item'}</div>
+          <div class="text-primary font-extrabold">$${Number(item.price || 0).toFixed(2)}</div>
+        </div>
+        <div class="flex flex-col items-end justify-between">
+          <button onclick="removeItem(${Number(item.id)})" class="text-muted-foreground hover:text-destructive">✕</button>
+          <div class="flex items-center gap-2 bg-card/60 rounded-full px-2 py-1 border border-border/50">
+            <button onclick="updateQuantity(${Number(item.id)}, -1)" class="w-6 h-6 font-extrabold">-</button>
+            <span class="w-4 text-center font-extrabold">${Number(item.quantity || 0)}</span>
+            <button onclick="updateQuantity(${Number(item.id)}, 1)" class="w-6 h-6 font-extrabold">+</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
 
-        // Add to Cart from Detail Page (uses EJS data)
-        const currentProduct = JSON.parse(document.getElementById('product-data').textContent);
-        function addToCartFromDetail() {
-            const existing = cart.find(item => item.id === currentProduct.id);
-            if (existing) {
-                existing.quantity++;
-            } else {
-                cart.push({ ...currentProduct, quantity: 1 });
-            }
-            saveCart();
-            toggleCart(); // Open cart to confirm
-        }
+    const subtotal = cart.reduce((a,i)=> a + (Number(i.price || 0) * Number(i.quantity || 0)), 0);
+    const tax = subtotal * 0.1;
 
-        function updateQuantity(id, change) {
-            const item = cart.find(i => i.id === id);
-            if (item) {
-                item.quantity += change;
-                if (item.quantity <= 0) cart = cart.filter(i => i.id !== id);
-                saveCart();
-            }
-        }
+    document.getElementById('cart-subtotal').innerText = `$${subtotal.toFixed(2)}`;
+    document.getElementById('cart-tax').innerText = `$${tax.toFixed(2)}`;
+    document.getElementById('cart-total').innerText = `$${(subtotal+tax).toFixed(2)}`;
 
-        function removeItem(id) {
-            cart = cart.filter(i => i.id !== id);
-            saveCart();
-        }
+    footer.classList.remove('hidden');
+  }
 
-        function updateCartUI() {
-            const container = document.getElementById('cart-items-container');
-            const footer = document.getElementById('cart-footer');
-            const badge = document.getElementById('cart-badge');
+  async function checkout(){
+    const button = document.querySelector('#cart-footer button');
+    const original = button.innerHTML;
+    button.innerText = "Processing...";
+    button.disabled = true;
 
-            const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
-            badge.innerText = totalItems;
+    try{
+      const res = await fetch('/create-checkout-session', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({ cart })
+      });
+      const data = await res.json();
+      if(data.url) window.location.href = data.url;
+      else throw new Error('No URL');
+    } catch(err){
+      alert('Checkout failed');
+      button.innerHTML = original;
+      button.disabled = false;
+    }
+  }
 
-            if (totalItems > 0) {
-                badge.classList.remove('hidden');
-                badge.classList.remove('animate-pop');
-                void badge.offsetWidth;
-                badge.classList.add('animate-pop');
-            } else {
-                badge.classList.add('hidden');
-            }
+  const currentProduct = JSON.parse(document.getElementById('product-data').textContent);
 
-            if (cart.length === 0) {
-                container.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-center text-muted-foreground animate-enter"><svg class="w-16 h-16 mb-4 opacity-20" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg><p class="text-lg">Your cart is empty</p></div>`;
-                footer.classList.add('hidden');
-                return;
-            }
+  function addToCartFromDetail(){
+    const id = Number(currentProduct.id);
+    const existing = cart.find(i => Number(i.id) === id);
 
-            container.innerHTML = cart.map(item => `
-                <div class="flex gap-4 bg-secondary-container/30 hover:bg-secondary-container/50 transition-colors duration-300 rounded-2xl p-3 animate-pop">
-                    <img src="${item.image}" class="w-20 h-20 object-cover rounded-xl flex-shrink-0" />
-                    <div class="flex-1 min-w-0 flex flex-col justify-center">
-                        <h4 class="font-bold line-clamp-1 text-foreground">${item.title}</h4>
-                        <p class="text-primary font-bold text-lg">$${item.price}</p>
-                    </div>
-                    <div class="flex flex-col items-end justify-between">
-                        <button onclick="removeItem(${item.id})" class="text-muted-foreground hover:text-destructive transition-colors p-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
-                        <div class="flex items-center gap-2 bg-card rounded-full px-2 py-1 shadow-sm">
-                            <button onclick="updateQuantity(${item.id}, -1)" class="w-6 h-6 flex items-center justify-center hover:bg-secondary-container rounded-full transition-colors font-bold">-</button>
-                            <span class="w-4 text-center text-sm font-medium">${item.quantity}</span>
-                            <button onclick="updateQuantity(${item.id}, 1)" class="w-6 h-6 flex items-center justify-center hover:bg-secondary-container rounded-full transition-colors font-bold">+</button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+    if(existing) existing.quantity = Number(existing.quantity || 0) + 1;
+    else cart.push({ ...currentProduct, id, price: Number(currentProduct.price || 0), quantity: 1 });
 
-            const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-            const tax = subtotal * 0.1;
+    saveCart();
+    if (typeof showToast === 'function') showToast('Added to cart');
+    toggleCart();
+  }
 
-            document.getElementById('cart-subtotal').innerText = `$${subtotal.toFixed(2)}`;
-            document.getElementById('cart-tax').innerText = `$${tax.toFixed(2)}`;
-            document.getElementById('cart-total').innerText = `$${(subtotal + tax).toFixed(2)}`;
-            footer.classList.remove('hidden');
-            footer.classList.add('animate-enter');
-        }
+  loadCart();
+  initWishlist();
+</script>
 
-        async function checkout() {
-            const button = document.querySelector('#cart-footer button');
-            const originalText = button.innerHTML;
-
-            button.innerText = "Processing...";
-            button.disabled = true;
-
-            try {
-                const response = await fetch('/create-checkout-session', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cart: cart })
-                });
-
-                const data = await response.json();
-
-                if (data.url) {
-                    window.location.href = data.url;
-                } else {
-                    alert('Error creating checkout session');
-                    button.innerHTML = originalText;
-                    button.disabled = false;
-                }
-            } catch (err) {
-                console.error(err);
-                alert('Something went wrong!');
-                button.innerHTML = originalText;
-                button.disabled = false;
-            }
-        }
-
-        // INITIALIZE
-        loadCart();
-        initWishlist();
-    </script>
-</body>
-
-</html>
+<%- include('partials/layout_end') %>

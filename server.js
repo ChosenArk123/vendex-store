@@ -8,6 +8,7 @@ const fs = require('fs');
 // Models
 const Product = require('./models/Product');
 const Admin = require('./models/Admin');
+const Order = require('./models/Order'); // Moved to top for consistency
 
 // Libraries
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
@@ -116,6 +117,10 @@ app.get('/feed.xml', async (req, res) => {
     } catch (err) { res.status(500).send('Feed Error'); }
 });
 
+// -----------------------------------------
+// 3. CHECKOUT & ORDER TRACKING ROUTES
+// -----------------------------------------
+
 // Stripe Checkout
 app.post('/create-checkout-session', async (req, res) => {
     try {
@@ -132,8 +137,8 @@ app.post('/create-checkout-session', async (req, res) => {
             payment_method_types: ['card'],
             line_items: lineItems,
             mode: 'payment',
-            success_url: `${req.protocol}://${req.get('host')}/success`,
-            cancel_url: `${req.protocol}://${req.get('host')}/cancel`,
+            success_url: `${req.headers.origin}/order/processing?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${req.headers.origin}/cancel`,
         });
         res.json({ url: session.url });
     } catch (err) { res.status(500).json({ error: 'Checkout failed' }); }
@@ -142,8 +147,87 @@ app.post('/create-checkout-session', async (req, res) => {
 app.get('/success', (req, res) => res.render('success'));
 app.get('/cancel', (req, res) => res.render('cancel'));
 
+// The "Landing" Page after purchase (Order Creation)
+app.get('/order/processing', async (req, res) => {
+    const { session_id } = req.query;
+
+    if (!session_id) return res.redirect('/');
+
+    // Retrieve order. If it doesn't exist, create it.
+    let order = await Order.findOne({ stripeSessionId: session_id });
+
+    if (!order) {
+        // In a real app, retrieve customer_email from the Stripe API object here
+        const mockStripeEmail = "user_verified_email@example.com"; 
+
+        order = new Order({
+            stripeSessionId: session_id,
+            customerEmail: mockStripeEmail, 
+            status: 'received',
+            // Set estimation to current time + 24 hours (86,400,000 milliseconds)
+            estimatedCompletion: new Date(Date.now() + 86400000) 
+        });
+        await order.save();
+    }
+
+    res.render('order_tracking', { order });
+});
+
+// API Route: For "Live Updates" polling
+app.get('/api/order/:id/status', async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id);
+        if (!order) return res.status(404).json({ error: "Order not found" });
+
+        res.json({ 
+            status: order.status, 
+            percent: getPercentFromStatus(order.status),
+            estimated: order.estimatedCompletion 
+        });
+    } catch (e) {
+        res.status(500).send('Server Error');
+    }
+});
+
+// API Route: Enable Notifications (SMS or Email)
+app.post('/api/order/:id/notify', async (req, res) => {
+    const { method, value } = req.body; // method: 'email' or 'sms', value: input data
+    
+    try {
+        const updateData = { 
+            notificationsEnabled: true,
+            notificationMethod: method 
+        };
+
+        if (method === 'sms') {
+            updateData.customerPhone = value;
+        } else {
+            updateData.customerEmail = value;
+        }
+
+        const order = await Order.findByIdAndUpdate(req.params.id, updateData, { new: true });
+        
+        if (order) {
+            // Placeholder for Notification Logic (e.g., Twilio or SendGrid)
+            // if (method === 'sms') sendSms(value, "You are subscribed!");
+            
+            res.json({ success: true, message: "Notifications enabled!" });
+        } else {
+            res.status(404).json({ success: false, error: "Order not found" });
+        }
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+// Helper for progress bar calculation
+function getPercentFromStatus(status) {
+    const map = { 'received': 10, 'processing': 30, 'packing': 60, 'shipped': 90, 'delivered': 100 };
+    return map[status] || 0;
+}
+
 // -----------------------------------------
-// 3. ADMIN & INTELLIGENCE ROUTES
+// 4. ADMIN & INTELLIGENCE ROUTES
 // -----------------------------------------
 
 app.get('/login', (req, res) => res.render('login', { error: null }));
@@ -155,8 +239,8 @@ app.get('/admin', checkAuth, async (req, res) => {
         const products = await Product.find({}).lean();
         
         // Data Aggregation logic
-        let totalInventoryValue = 0; // Price * Stock (Assuming stock=1 for now)
-        let totalCostBasis = 0;      // Cost * Stock
+        let totalInventoryValue = 0; 
+        let totalCostBasis = 0;      
         let totalSpread = 0;
         let syncedCount = 0;
 
@@ -178,7 +262,7 @@ app.get('/admin', checkAuth, async (req, res) => {
             syncedCount: syncedCount,
             avgSpread: syncedCount > 0 ? (totalSpread / syncedCount).toFixed(1) : 0,
             projectedProfit: (totalInventoryValue - totalCostBasis).toFixed(2),
-            marginPotential: (((totalInventoryValue - totalCostBasis) / totalInventoryValue) * 100).toFixed(1)
+            marginPotential: totalInventoryValue > 0 ? (((totalInventoryValue - totalCostBasis) / totalInventoryValue) * 100).toFixed(1) : 0
         };
 
         res.render('admin', { products, stats });
@@ -186,12 +270,12 @@ app.get('/admin', checkAuth, async (req, res) => {
         res.status(500).send("Admin Load Error");
     }
 });
+
 // --- DYNAMIC PATH LOGIC (Critical for Render vs Local) ---
 app.post('/admin/sync-now', checkAuth, (req, res) => {
     const isProd = process.env.NODE_ENV === 'production';
     const pythonCmd = isProd ? 'python3' : '/Users/aniparuc/MyNodeShop/venv/bin/python3';
     
-    // We will run the Watcher, then the Brain
     const watcherPath = path.join(__dirname, 'services', 'intelligence', 'watcher.py');
     const brainPath = path.join(__dirname, 'services', 'intelligence', 'brain.py');
 
@@ -199,13 +283,19 @@ app.post('/admin/sync-now', checkAuth, (req, res) => {
 
     // Run Scraper first
     exec(`${pythonCmd} ${watcherPath}`, (err1, stdout1) => {
-        if (err1) return res.status(500).json({ success: false, error: "Watcher Failed" });
+        if (err1) {
+            console.error("Watcher Error:", err1);
+            return res.status(500).json({ success: false, error: "Watcher Failed" });
+        }
         
         console.log("✅ Watcher Finished. Starting Brain...");
         
         // Run Pricing Engine second
         exec(`${pythonCmd} ${brainPath}`, (err2, stdout2) => {
-            if (err2) return res.status(500).json({ success: false, error: "Brain Failed" });
+            if (err2) {
+                console.error("Brain Error:", err2);
+                return res.status(500).json({ success: false, error: "Brain Failed" });
+            }
             
             console.log("✅ Brain Finished. Pricing Updated.");
             res.json({ success: true, message: "Intelligence Cycle Complete: Market Scanned & Prices Adjusted." });
@@ -224,7 +314,7 @@ app.post('/admin/update-cost', checkAuth, async (req, res) => {
 });
 
 // -----------------------------------------
-// 4. BULK CSV IMPORT ENGINE
+// 5. BULK CSV IMPORT ENGINE
 // -----------------------------------------
 app.post('/admin/bulk-import', checkAuth, upload.single('productCsv'), (req, res) => {
     const results = [];
@@ -259,7 +349,7 @@ app.post('/admin/bulk-import', checkAuth, upload.single('productCsv'), (req, res
 });
 
 // -----------------------------------------
-// 5. SERVER STARTUP
+// 6. SERVER STARTUP
 // -----------------------------------------
 const startServer = async () => {
     try {

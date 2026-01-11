@@ -1,33 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Canceled</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        background: '#FEF7FF',
-                        card: '#FFFFFF',
-                        destructive: '#BA1A1A',
-                    }
-                }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment Canceled</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            background: 'var(--background)',
+            foreground: 'var(--foreground)',
+            card: 'var(--card)',
+            primary: 'var(--primary)',
+            destructive: 'var(--destructive)',
+            'muted-foreground': 'var(--muted-foreground)',
+            border: 'var(--border)'
+          },
+          borderRadius: { '3xl': '2.5rem' },
+          transitionTimingFunction: { emphasized: 'cubic-bezier(0.2, 0.0, 0.0, 1.0)' },
+          keyframes: {
+            'slide-up-fade': {
+              '0%': { opacity: '0', transform: 'translateY(16px) scale(0.98)' },
+              '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
             }
+          },
+          animation: { enter: 'slide-up-fade 0.6s cubic-bezier(0.2,0,0,1) forwards' }
         }
-    </script>
+      }
+    }
+  </script>
+
+  <style>
+    :root{
+      --background:#FEF7FF; --foreground:#1D1B20; --card:#F7F2FA; --primary:#6750A4;
+      --destructive:#BA1A1A; --muted-foreground:#4A4A4A; --border:#CAC4D0;
+    }
+    body.dark{
+      --background:#0D0D1A; --foreground:#E6E1E5; --card:#1A1A2E; --primary:#D0BCFF;
+      --destructive:#FFB4AB; --muted-foreground:#CAC4D0; --border:#49454F;
+    }
+    body{ background:var(--background); color:var(--foreground); transition: background-color .5s cubic-bezier(0.2,0,0,1), color .5s; }
+  </style>
 </head>
-<body class="bg-[var(--background)] flex items-center justify-center min-h-screen font-sans">
-    <div class="bg-[var(--card)] p-8 rounded-2xl shadow-xl text-center max-w-md w-full mx-4 border border-gray-100">
-        <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg class="w-10 h-10 text-[var(--destructive)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </div>
-        <h1 class="text-3xl font-bold text-gray-900 mb-3">Checkout Canceled</h1>
-        <p class="text-gray-500 mb-8 leading-relaxed">Your payment was not processed. You can return to the store to continue shopping or try again.</p>
-        <a href="/" class="block w-full bg-gray-900 text-white py-4 rounded-full font-bold hover:opacity-90 transition shadow-lg">Return to Cart</a>
+
+<body class="dark min-h-screen font-sans flex items-center justify-center px-4">
+  <div class="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
+    <div class="absolute -top-24 -left-24 w-[30rem] h-[30rem] bg-primary/20 rounded-full blur-[100px]"></div>
+  </div>
+
+  <div class="w-full max-w-md bg-card/70 backdrop-blur-2xl border border-border/60 rounded-3xl shadow-2xl p-8 text-center animate-enter">
+    <div class="w-20 h-20 bg-destructive/15 rounded-full flex items-center justify-center mx-auto mb-6 border border-border/60">
+      <svg class="w-10 h-10 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
     </div>
+
+    <h1 class="text-3xl font-extrabold tracking-tight mb-3">Checkout Canceled</h1>
+    <p class="text-muted-foreground leading-relaxed mb-8">
+      Your payment wasn’t processed. You can return to the store and try again.
+    </p>
+
+    <a href="/"
+      class="block w-full bg-primary text-white py-4 rounded-full font-extrabold shadow-lg
+             hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98]
+             transition-all duration-300 ease-emphasized"
+    >
+      Return to Cart
+    </a>
+  </div>
+
+  <script>
+    if (localStorage.getItem('theme') === 'light') document.body.classList.remove('dark');
+  </script>
 </body>
 </html>
