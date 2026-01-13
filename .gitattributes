@@ -1,0 +1,6 @@
+# Treat EJS files as HTML and include them in the language stats
+*.ejs linguist-detectable=true
+*.ejs linguist-language=HTML
+
+# If you have CSS or SCSS you want counted:
+*.css linguist-detectable=true

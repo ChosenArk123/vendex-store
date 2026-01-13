@@ -1,5 +1,18 @@
-node_modules
-.DS_Store.env
-.envnode_modules/
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Environment variables
 .env
-.env
+.env.local
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Python virtual environments (Likely the cause of your stats issue)
+venv/
+.venv/
+env/
+bin/
+lib/
