@@ -8,7 +8,7 @@ const fs = require('fs');
 // Models
 const Product = require('./models/Product');
 const Admin = require('./models/Admin');
-const Order = require('./models/Order'); // Moved to top for consistency
+const Order = require('./models/Order');
 
 // Libraries
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
@@ -139,6 +139,7 @@ app.post('/create-checkout-session', async (req, res) => {
             mode: 'payment',
             success_url: `${req.headers.origin}/order/processing?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${req.headers.origin}/cancel`,
+            shipping_address_collection: { allowed_countries: ['US', 'CA', 'GB'] }
         });
         res.json({ url: session.url });
     } catch (err) { res.status(500).json({ error: 'Checkout failed' }); }
@@ -148,29 +149,78 @@ app.get('/success', (req, res) => res.render('success'));
 app.get('/cancel', (req, res) => res.render('cancel'));
 
 // The "Landing" Page after purchase (Order Creation)
+// UPDATED: Now ALWAYS syncs with Stripe to fix $0.00 issues
 app.get('/order/processing', async (req, res) => {
     const { session_id } = req.query;
 
     if (!session_id) return res.redirect('/');
 
-    // Retrieve order. If it doesn't exist, create it.
-    let order = await Order.findOne({ stripeSessionId: session_id });
-
-    if (!order) {
-        // In a real app, retrieve customer_email from the Stripe API object here
-        const mockStripeEmail = "user_verified_email@example.com"; 
-
-        order = new Order({
-            stripeSessionId: session_id,
-            customerEmail: mockStripeEmail, 
-            status: 'received',
-            // Set estimation to current time + 24 hours (86,400,000 milliseconds)
-            estimatedCompletion: new Date(Date.now() + 86400000) 
+    try {
+        // 1. Retrieve the session from Stripe
+        const session = await stripe.checkout.sessions.retrieve(session_id, {
+            expand: ['line_items']
         });
-        await order.save();
-    }
 
-    res.render('order_tracking', { order });
+        // 2. Find or Create the order
+        let order = await Order.findOne({ stripeSessionId: session_id });
+        if (!order) {
+            order = new Order({ stripeSessionId: session_id });
+        }
+
+        // 3. FORCE UPDATE from Stripe (The "Pull Straight from Payment Page" Logic)
+        // We overwrite the DB data every time this page loads to ensure accuracy.
+        
+        order.customerName = session.customer_details?.name || "Valued Customer";
+        order.customerEmail = session.customer_details?.email || "no-email@example.com";
+        order.customerPhone = session.customer_details?.phone || "";
+        order.totalAmount = session.amount_total; // Updates the price
+        
+        // Update Address
+        if (session.customer_details?.address) {
+            order.shippingAddress = {
+                line1: session.customer_details.address.line1,
+                city: session.customer_details.address.city,
+                state: session.customer_details.address.state,
+                postal_code: session.customer_details.address.postal_code,
+                country: session.customer_details.address.country
+            };
+        }
+
+        // Ensure defaults
+        order.status = order.status || 'received';
+        order.estimatedCompletion = order.estimatedCompletion || new Date(Date.now() + 86400000);
+        
+        await order.save();
+        console.log("✅ Order forced-sync complete.");
+
+        
+        // 4. Prepare data for the view
+        const orderData = order.toObject();
+        
+        // Map Items directly from Stripe for the view
+        if (session.line_items && session.line_items.data) {
+            orderData.items = session.line_items.data.map(li => ({
+                title: li.description,
+                quantity: li.quantity,
+                price: (li.amount_total / li.quantity) / 100 
+            }));
+        }
+
+        // Safe Defaults for View
+        if (!orderData.customer) {
+            orderData.customer = {
+                name: order.customerName,
+                email: order.customerEmail,
+                phone: order.customerPhone
+            };
+        }
+
+        res.render('order_tracking', { order: orderData });
+
+    } catch (err) {
+        console.error("Order Processing Error:", err);
+        res.redirect('/');
+    }
 });
 
 // API Route: For "Live Updates" polling
@@ -191,7 +241,7 @@ app.get('/api/order/:id/status', async (req, res) => {
 
 // API Route: Enable Notifications (SMS or Email)
 app.post('/api/order/:id/notify', async (req, res) => {
-    const { method, value } = req.body; // method: 'email' or 'sms', value: input data
+    const { method, value } = req.body; 
     
     try {
         const updateData = { 
@@ -208,9 +258,6 @@ app.post('/api/order/:id/notify', async (req, res) => {
         const order = await Order.findByIdAndUpdate(req.params.id, updateData, { new: true });
         
         if (order) {
-            // Placeholder for Notification Logic (e.g., Twilio or SendGrid)
-            // if (method === 'sms') sendSms(value, "You are subscribed!");
-            
             res.json({ success: true, message: "Notifications enabled!" });
         } else {
             res.status(404).json({ success: false, error: "Order not found" });
@@ -273,19 +320,20 @@ app.get('/admin', checkAuth, async (req, res) => {
 
 // --- DYNAMIC PATH LOGIC (Critical for Render vs Local) ---
 app.post('/admin/sync-now', checkAuth, (req, res) => {
-    const isProd = process.env.NODE_ENV === 'production';
-    const pythonCmd = isProd ? 'python3' : '/Users/aniparuc/MyNodeShop/venv/bin/python3';
+    
+    // Respects .env or defaults to standard 'python3'
+    const pythonCmd = process.env.PYTHON_PATH || 'python3';
     
     const watcherPath = path.join(__dirname, 'services', 'intelligence', 'watcher.py');
     const brainPath = path.join(__dirname, 'services', 'intelligence', 'brain.py');
 
-    console.log("🔄 Starting Full Intelligence Cycle...");
+    console.log(`🔄 Starting Intelligence Cycle using: ${pythonCmd}`);
 
     // Run Scraper first
     exec(`${pythonCmd} ${watcherPath}`, (err1, stdout1) => {
         if (err1) {
             console.error("Watcher Error:", err1);
-            return res.status(500).json({ success: false, error: "Watcher Failed" });
+            return res.status(500).json({ success: false, error: "Watcher Failed. Check logs." });
         }
         
         console.log("✅ Watcher Finished. Starting Brain...");
@@ -294,7 +342,7 @@ app.post('/admin/sync-now', checkAuth, (req, res) => {
         exec(`${pythonCmd} ${brainPath}`, (err2, stdout2) => {
             if (err2) {
                 console.error("Brain Error:", err2);
-                return res.status(500).json({ success: false, error: "Brain Failed" });
+                return res.status(500).json({ success: false, error: "Brain Failed. Check logs." });
             }
             
             console.log("✅ Brain Finished. Pricing Updated.");

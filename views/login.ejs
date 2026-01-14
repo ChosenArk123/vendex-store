@@ -8,7 +8,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      darkMode: 'class',
       theme: {
         extend: {
           fontFamily: {
@@ -73,21 +72,7 @@
       --border: #CAC4D0;
     }
 
-    body.dark {
-      --background: #0D0D1A;
-      --foreground: #E6E1E5;
-      --card: #1A1A2E;
-      --card-foreground: #E6E1E5;
-      --primary: #D0BCFF;
-      --primary-foreground: #371E73;
-      --primary-container: #4F378B;
-      --on-primary-container: #EADDFF;
-      --secondary-container: #381E72;
-      --tertiary: #EFB8C8;
-      --destructive: #FFB4AB;
-      --muted-foreground: #CAC4D0;
-      --border: #49454F;
-    }
+    /* REMOVED DARK MODE VARS */
 
     body {
       background: var(--background);
@@ -97,8 +82,7 @@
   </style>
 </head>
 
-<body class="dark min-h-screen font-sans flex items-center justify-center px-4">
-  <!-- ambient blobs (same vibe as index) -->
+<body class="min-h-screen font-sans flex items-center justify-center px-4">
   <div class="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
     <div class="absolute -top-24 -left-24 w-[30rem] h-[30rem] bg-primary/20 rounded-full blur-[90px]"></div>
     <div class="absolute -top-24 -right-24 w-[26rem] h-[26rem] bg-tertiary/20 rounded-full blur-[90px]"></div>
@@ -114,23 +98,8 @@
             Enter your credentials to access the Intelligence Hub.
           </p>
         </div>
-
-        <button
-          onclick="toggleTheme()"
-          class="p-3 rounded-full hover:bg-secondary-container/60 transition-all duration-300 ease-emphasized active:scale-90"
-          aria-label="Toggle theme"
-          title="Toggle theme"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="4" />
-            <path d="M12 2v2" /><path d="M12 20v2" />
-            <path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" />
-            <path d="M2 12h2" /><path d="M20 12h2" />
-            <path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" />
-          </svg>
-        </button>
-      </div>
+        
+        </div>
 
       <form action="/login" method="POST" class="space-y-4">
         <div>
@@ -172,13 +141,6 @@
       </form>
     </div>
   </div>
-
-  <script>
-    function toggleTheme() {
-      document.body.classList.toggle('dark');
-      localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
-    }
-    if (localStorage.getItem('theme') === 'light') document.body.classList.remove('dark');
-  </script>
-</body>
+  
+  </body>
 </html>
